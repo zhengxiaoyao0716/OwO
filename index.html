@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="Keywords" content="正逍遥0716 个人网站"/>
+    <meta name="Description" content="正逍遥0716 爱冷剑，怜悲箫，月下狼孤啸；轻点画，慢勾描，云中人逍遥。"/>
+    <link rel="shortcut icon" href="http://os.zheng0716.com/favicon.ico"/>
+    <title>逍遥居</title>
+    <script src="http://apps.bdimg.com/libs/jquery/2.0.0/jquery.min.js"></script>
+    <script src="http://apps.bdimg.com/libs/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+    <link href="http://apps.bdimg.com/libs/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet"/>
+    <!-- 页面控制 -->
+    <script src="./static/js/tab_change.js"></script>
+    <script src="./static/js/read_rss.js"></script>
+    <script src="./static/js/pagination.js"></script>
+    <!-- 宠物 -->
+    <script src="./static/js/owopet.js"></script>
+    <!-- 调色盘，http://www.materialpalette.com/light-blue/yellow -->
+    <link href="./static/css/palette.css" rel="stylesheet"/>
+</head>
+<body>
+    <div class="container-fluid dark-primary-color"><br /></div>
+
+    <!-- Banner -->
+    <div class="container-fluid default-primary-color">
+        <br /><br />
+        <div class="row-fluid">
+            <div class="col-sm-2">
+                <img src="./static/image/logo.png" class="img-responsive" />
+                <address class="light-primary-color">
+                    <a href="mailto:1499383852@qq.com" class="text-primary-color">正逍遥0716</a><br />
+                    xiaoyao.zheng0716.com, 2016
+                </address>
+            </div>
+            <div class="col-sm-8">
+                <div class="well primary-text-color" style="background: white">
+                    <h1>逍遥居</h1>
+                    <p class="secondary-text-color">这里是我的个人网站，欢迎来访</p>
+                </div>
+                <div  class="row">
+                    <div class="col-sm-5">
+                        <blockquote>
+                            <p class="text-primary-color">
+                                爱冷剑，怜悲箫，月下狼孤啸；<br />
+                                轻点画，慢勾描，云中人逍遥。<br />
+                                <small class="light-primary-color pull-right">by:正逍遥0716</small>
+                            </p>
+                        </blockquote>
+                    </div>
+                    <div id="pet_room" class="col-sm-2 pull-right">
+                        <img src="./static/image/feihe.png" class="img-responsive pull-right"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <embed src="http://www.xiami.com/widget/49017327_1771737866,_200_250_03A9F4_f9f9f9_0/multiPlayer.swf" type="application/x-shockwave-flash" width="200" height="250" wmode="opaque"></embed>
+            </div>
+        </div>
+        <div class="row-fluid"><div class="col-sm-12"><br /></div></div>
+    </div>
+
+    <!-- Page -->
+    <div class="container-fluid">
+        <br />
+
+        <!-- 导航 -->
+        <a name="guide"></a>
+        <div class="row-fluid">
+            <div class="col-sm-12">
+                <ul class="nav nav-tabs">
+                    <li id="main_sites">
+                        <a href=#guide onclick="main_sites()">主站链接</a>
+                    </li>
+                    <li id="last_news">
+                        <a href=#guide onclick="last_news()">最新动态</a>
+                    </li>
+                    <li id="san_jie_zhi">
+                        <a href=#guide onclick="san_jie_zhi()">三界志</a>
+                    </li>
+                    <li class="disabled">
+                        <a href=#guide>--</a>
+                    </li>
+                    <li class="dropdown pull-right">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href=#guide>友情链接</a>
+                        <ul class="dropdown-menu pull-right">
+                            <li>
+                                <a href="http://blog.xuehan.me/" target="_blank">Han</a>
+                            </li>
+                            <li class="divider"></li>
+                            <li>
+                                <a>--</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="row-fluid"><div class="col-sm-12"><br /></div></div>
+
+        <!-- 内容容器 -->
+        <div class="row-fluid contain" style="list-style:none"></div>
+
+        <!-- 分页按钮 -->
+        <div class="row-fluid">
+            <div class="col-sm-12">
+                <nav style="text-align: center">
+                    <ul class="pagination"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="waiting" tabindex="-1" role="dialog" aria-labelledby="waitingLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="waitingLabel">
+                        请稍候:
+                    </h4>
+                </div>
+                <div class="modal-body">
+                正在全力加载数据中。。。
+                </div>
+            </div><!-- /.modal -->
+        </div>
+    </div>
+    
+    <script>OwOpet.call();</script>
+    
+</body>
