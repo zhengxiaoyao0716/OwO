@@ -22,19 +22,24 @@ var OwOpet = {
     "menu": {
         "config": {
             //todo
-            "class": "",
+            "class": "",            //在class之后的属性不会被用户自定义的css覆盖
+            "bgColor": "white",
+            "shadowColor": "#888",
+            "focusColor": "#aaa",
             "strictFollow": false,  //是否严格跟随，即与宠物一起移动
             "autoHide": true,       //是否自动隐藏
             "defaultButtons": {
-                "hideButton": {"showed": true, "bye": "我会想念你的，再见咯~", "hello": "WoW，萌萌哒OwO又回来咯！"}
+                "hideButton": { "showed": true, "bye": "我会想念你的，再见咯~", "hello": "WoW，萌萌哒OwO又回来咯！" }
             }
         }
     },
     "chat": {
         "config": {
-            "defaultWords": ["爱冷剑，怜悲箫，月下狼孤啸；轻点画，慢勾描，云中人逍遥。"],
             "maxWidth": "300px",
-            "class": ""
+            "class": "",            //在class之前的属性可以被用户自定义的css覆盖，在class之后的属性不会
+            "bgColor": "white",
+            "shadowColor": "#888",
+            "defaultWords": ["爱冷剑，怜悲箫，月下狼孤啸；轻点画，慢勾描，云中人逍遥。"]
         }
     },
     "util": {
@@ -410,17 +415,17 @@ OwOpet.util.info("Init", "Main body is ready.");
             button.style.marginLeft = "6px";
             button.style.marginRight = "6px";
             button.style.cursor = "pointer";
-            button.style.backgroundColor = "white";
-            button.style.boxShadow = "0px 0px 8px #888";
+            button.style.backgroundColor = config.bgColor;
+            button.style.boxShadow = "0px 0px 8px " + config.shadowColor;
             button.style.borderRadius = "6px";
-            button.style.border = "white 3px solid";
+            button.style.border = config.bgColor + " 3px solid";
             button.style.cssFloat = "right";
             
             OwOpet.util.addMouseEnterListen(button, function (e) {
-                button.style.border = "#aaa 3px solid";
+                button.style.border = config.focusColor + " 3px solid";
             });
             OwOpet.util.addMouseLeaveListen(button, function (e) {
-                button.style.border = "white 3px solid";
+                button.style.border = config.bgColor + " 3px solid";
             });
             
             return button;
@@ -644,12 +649,10 @@ OwOpet.util.info("Init", "Menu module is ready.");
         var panelDiv = document.createElement("div");
         panelDiv.style.maxWidth = config.maxWidth;
         panelDiv.style.display = "inline-block";
-        panelDiv.style.paddingLeft = "6px";
-        panelDiv.style.paddingRight = "6px";
-        panelDiv.style.backgroundColor = "white";
-        panelDiv.style.boxShadow = "0px 0px 8px #888";
+        panelDiv.style.padding = "6px";
+        panelDiv.style.backgroundColor = config.bgColor;
+        panelDiv.style.boxShadow = "0px 0px 8px " + config.shadowColor;
         panelDiv.style.borderRadius = "6px";
-        panelDiv.style.border = "white 3px solid";
             
         panelDiv.className = config.class;  //允许用户自定义的class
         
