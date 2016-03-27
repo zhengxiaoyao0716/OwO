@@ -1,37 +1,50 @@
 /** 默认配置，请酌情修改 */
 var OwOpet = {
-    info: {
-        name: "OwO",
-        gender: "boy",
-        birth: "2016/3/6",
-        master: "zhengxiaoya0716"
+    "info": {
+        "name": "OwO",
+        "gender": "boy",
+        "birth": "2016/3/6",
+        "master": "zhengxiaoya0716"
     },
-    config: {
-        image: "./image/feihe.png",
-        anim: {
+    "config": {
+        "image": "./image/feihe.png",
+        "anim": {
             //todo
         },
-        position: "fixed",
-        coord: [1, 0, 99],
-        axis: [1, 0],
+        "position": "fixed",
+        "coord": [1, 0, 99],
+        "axis": [1, 0],
         //cursor: "./image/OwO_moe.ico",
-        cursor: "./image/OwO_simple.ico",
-        title: "Hi，我是萌宠OwO~",
-        draggable: true
+        "cursor": "./image/OwO_simple.ico",
+        "title": "Hi，我是萌宠OwO~",
+        "draggable": true
     },
-    menu: {
-        config: {
+    "menu": {
+        "config": {
             //todo
+            "class": "",
+            "strictFollow": false,  //是否严格跟随，即与宠物一起移动
+            "autoHide": true,       //是否自动隐藏
+            "defaultButtons": {
+                "hideButton": {"showed": true, "bye": "我会想念你的，再见咯~", "hello": "WoW，萌萌哒OwO又回来咯！"}
+            }
         }
     },
-    util: {
-        config: {
-            log: true,
-            debug: true,
-            info: true,
-            warn: true,
-            error: true,
-            monitor: true
+    "chat": {
+        "config": {
+            "defaultWords": ["爱冷剑，怜悲箫，月下狼孤啸；轻点画，慢勾描，云中人逍遥。"],
+            "maxWidth": "300px",
+            "class": ""
+        }
+    },
+    "util": {
+        "config": {
+            "log": true,
+            "debug": true,
+            "info": true,
+            "warn": true,
+            "error": true,
+            "monitor": true
         }
     }
 };
@@ -101,7 +114,7 @@ OwOpet.init = function () {
                 try {
                     result = func.apply(context, arguments);
                 } catch (e) {
-                    OwOpet.util.error(e.name, e.message);
+                    OwOpet.util.error(e.name, e.message + "\n" + e.stack);
                     OwOpet.util.warn("Func status", "error!");
                 } finally {
                     OwOpet.util.debug("Func status", "fin");
@@ -181,15 +194,28 @@ OwOpet.init = function () {
             else image.onload = callback;
         }
     };
+    
+    /** 光标进入 */
+    OwOpet.util.addMouseEnterListen = function (el, func) {
+        if (el.onmouseenter === null) el.onmouseenter = func;
+        else el.onmouseover = func;
+    } 
+    /** 光标离开 */
+    OwOpet.util.addMouseLeaveListen = function (el, func) {
+        if (el.onmouseleave === null) el.onmouseleave = func;
+        else el.onmouseout = func;
+    } 
 }());
 OwOpet.util.info("Init", "Base utilities is ready.");
 
 
 /** OwOpet 主体模块 */
 (function () {
+    var config = OwOpet.config;
+    
     var pet;
     /** 召唤 */
-    OwOpet.call = OwOpet.util.loadImage(OwOpet.config.image, function () {
+    OwOpet.call = OwOpet.util.loadImage(config.image, function () {
         if (pet)
         {
             OwOpet.util.warn("IllegalState", "Already called.");
@@ -198,10 +224,12 @@ OwOpet.util.info("Init", "Base utilities is ready.");
         pet = {};
         
         var petImg = document.createElement("img");
-        petImg.src = OwOpet.config.image;
+        petImg.src = config.image;
         petImg.draggable = false;
         var petDiv = document.createElement("div");
         petDiv.appendChild(petImg);
+        petDiv.style.position = config.position;
+        petDiv.style.zIndex = String(config.coord[2]);
         
         var showed;
         //显示
@@ -231,7 +259,7 @@ OwOpet.util.info("Init", "Base utilities is ready.");
             OwOpet.menu.hide();
         };
         
-        var coord;
+        var coord = [];
         //调整位置
         pet.resize = function () {
             if (!showed)
@@ -240,35 +268,30 @@ OwOpet.util.info("Init", "Base utilities is ready.");
                 return;
             }
             
-            petDiv.style.position = OwOpet.config.position;
-            coord = [0, 0, OwOpet.config.coord[2]];
-            coord[0] = OwOpet.config.coord[0] * document.documentElement.clientWidth;
-            coord[1] = OwOpet.config.coord[1] * document.documentElement.clientHeight;
-            coord[0] -= OwOpet.config.axis[0] * petDiv.clientWidth;
-            coord[1] -= OwOpet.config.axis[1] * petDiv.clientHeight;
+            coord[0] = config.coord[0] * document.documentElement.clientWidth;
+            coord[1] = config.coord[1] * document.documentElement.clientHeight;
+            coord[0] -= config.axis[0] * petDiv.clientWidth;
+            coord[1] -= config.axis[1] * petDiv.clientHeight;
             petDiv.style.left = coord[0] + "px";
             petDiv.style.top = coord[1] + "px";
-            petDiv.style.zIndex = String(coord[2]);
             
-            OwOpet.menu.move(coord);
+            OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.5 : 1.5) * petDiv.clientHeight);
         };
         OwOpet.menu.init();
         pet.resize();
         
-        petDiv.style.cursor = 'url("' + OwOpet.config.cursor + '"), url("http://os.zheng0716.com/static/image/OwO_simple.ico"), auto';
-        petDiv.title = OwOpet.config.title;
+        petDiv.style.cursor = 'url("' + config.cursor + '"), url("http://os.zheng0716.com/static/image/OwO_simple.ico"), auto';
+        petDiv.title = config.title;
         
         //鼠标进入
-        function onmouseenter(e) {
+        OwOpet.util.addMouseEnterListen(petDiv, function (e) {
             OwOpet.menu.show();
-        };
-        if (petDiv.onmouseenter === null) petDiv.onmouseenter = onmouseenter;
-        else petDiv.onmouseover = onmouseenter;
+        });
         var pressed = false;
         var offset = [0, 0];
         //鼠标按下
         petDiv.onmousedown = function (e) {
-            pressed = OwOpet.config.draggable && true;
+            pressed = config.draggable && true;
             offset[0] = e.pageX - coord[0];
             offset[1] = e.pageY - coord[1];
         };
@@ -282,6 +305,8 @@ OwOpet.util.info("Init", "Base utilities is ready.");
             coord[1] = e.pageY - offset[1];
             petDiv.style.left = coord[0] + "px";
             petDiv.style.top = coord[1] + "px";
+            
+            if (OwOpet.menu.config.strictFollow) OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.5 : 1.5) * petDiv.clientHeight);
         };
         //鼠标抬起
         petDiv.onmouseup = function (e) {
@@ -291,20 +316,20 @@ OwOpet.util.info("Init", "Base utilities is ready.");
             {
                 moved = false;
                 
-                OwOpet.menu.move(coord);
+                OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.5 : 1.5) * petDiv.clientHeight);
                 return;
             }
             //var perX = (e.layerX || e.offsetX) / petDiv.clientWidth;
             //var perY = (e.layerY || e.offsetY) / petDiv.clientHeight;
         };
         //鼠标离开
-        function onmouseleave(e) {
+        OwOpet.util.addMouseLeaveListen(petDiv, function (e) {
             pressed = false;
             
-            OwOpet.menu.hide();
-        };
-        if (petDiv.onmouseleave === null) petDiv.onmouseleave = onmouseleave;
-        else petDiv.onmouseout = onmouseleave;
+            
+            if (config.autoHide) OwOpet.menu.hide();
+            else OwOpet.util.log("Lose focus", "Menu doesn't hide, config is always show");
+        });
     });
     
     //保护性装饰器
@@ -356,8 +381,9 @@ OwOpet.util.info("Init", "Main body is ready.");
 
 /** OwOpet.menu 菜单模块 */
 (function () {
-    var menu;
+    var config = OwOpet.menu.config;
     
+    var menu;
     /** 初始化 */
     OwOpet.menu.init = function () {
         if (menu)
@@ -368,11 +394,76 @@ OwOpet.util.info("Init", "Main body is ready.");
         menu = {};
         
         var menuDiv = document.createElement("div");
-        menuDiv.textContent = "test";
+        menuDiv.style.position = OwOpet.config.position;
+        menuDiv.style.zIndex = String(1 + OwOpet.config.coord[2]);
+        menuDiv.className = config.class; //允许用户自定义的class
+        var menuPanel = document.createElement("div");
+        menuDiv.appendChild(menuPanel);
+        var defaultButton = document.createElement("p");
+        defaultButton.textContent = "OwO";
         
-        //添加
-        menu.add = function (image) {
-            //todo
+        //添加默认样式
+        menu.addDefaultButtonStyle = function (button) {
+            button.style.display = "inline-block";
+            button.style.paddingLeft = "6px";
+            button.style.paddingRight = "6px";
+            button.style.marginLeft = "6px";
+            button.style.marginRight = "6px";
+            button.style.cursor = "pointer";
+            button.style.backgroundColor = "white";
+            button.style.boxShadow = "0px 0px 8px #888";
+            button.style.borderRadius = "6px";
+            button.style.border = "white 3px solid";
+            button.style.cssFloat = "right";
+            
+            OwOpet.util.addMouseEnterListen(button, function (e) {
+                button.style.border = "#aaa 3px solid";
+            });
+            OwOpet.util.addMouseLeaveListen(button, function (e) {
+                button.style.border = "white 3px solid";
+            });
+            
+            return button;
+        }
+        menu.addDefaultButtonStyle(defaultButton);
+        
+        //切换按钮面板
+        menu.changePanel = function(panel) {
+            menuDiv.innerHTML = "";
+            menuDiv.appendChild(panel);
+            if (showed) {
+                //调整位置
+                showed = false;
+                menuDiv.remove();
+                menu.show();
+            }
+        };
+        defaultButton.onclick = function(e) {
+            var aboutDiv = document.createElement("div");
+            aboutDiv.textContent = "info";
+            menu.changePanel(aboutDiv);
+        }
+        
+        //添加按钮
+        menu.add = function (button) {
+            menuPanel.appendChild(button);
+        };
+        menu.add(OwOpet.chat.getPanel());
+        menu.add(document.createElement("br"));
+        menu.add(defaultButton);
+        
+        var coord;
+        //跟随
+        menu.follow = function (coordX, coordY) {
+            coord = [coordX, coordY];
+            
+            if (!config.autoHide) OwOpet.menu.show();
+            else if (showed)
+            {
+                menuDiv.remove();
+                showed = false;
+                menu.show();
+            }
         };
         
         var showed;
@@ -387,8 +478,8 @@ OwOpet.util.info("Init", "Main body is ready.");
             
             document.body.appendChild(menuDiv);
             
-            menuDiv.style.left = coord[0] + "px";
-            menuDiv.style.top = coord[1] + "px";
+            menuDiv.style.left = coord[0] - 0.5 * menuDiv.clientWidth + "px";
+            menuDiv.style.top = coord[1] - 0.5 * menuDiv.clientHeight + "px";
             
             showed = true;
             
@@ -403,6 +494,7 @@ OwOpet.util.info("Init", "Main body is ready.");
                 if (alpha < 100)  tranGrad = OwOpet.util.requestAnimationFrame(show);
             }());
         };
+        
         //隐藏
         menu.hide = function () {
             if (!showed)
@@ -417,48 +509,76 @@ OwOpet.util.info("Init", "Main body is ready.");
             (function hide() {
                 if (showed) return;
                 //todo
-                alpha -= 1;
+                alpha -= 2;
                 menuDiv.style.filter = 'alpha(opacity='+alpha+')';
                 menuDiv.style.opacity = alpha / 100;
                 
-                if (alpha > 0)  OwOpet.util.requestAnimationFrame(hide);
-                else menuDiv.remove();
+                if (alpha < 0) {
+                    menuDiv.innerHTML = "";
+                    menuDiv.remove();
+                    menuDiv.appendChild(menuPanel);
+                }
+                else OwOpet.util.requestAnimationFrame(hide);
             }());
         };
         
-        var coord;
-        //调整位置
-        menu.move = function (petCoord) {
-            OwOpet.util.log("menu move: ", petCoord);
-            coord = petCoord;
-            
-            menuDiv.style.position = OwOpet.config.position;
-            menuDiv.style.zIndex = String(1 + coord[2]);
-            
-            if (showed)
-            {
-                menuDiv.remove();
-                showed = false;
-                menu.show();
-            }
-        };
-        
         //鼠标进入
-        function onmouseenter(e) {
-            menu.show();
-        };
-        if (menuDiv.onmouseenter === null) menuDiv.onmouseenter = onmouseenter;
-        else menuDiv.onmouseover = onmouseenter;
+        OwOpet.util.addMouseEnterListen(menuDiv, function (e) {
+            OwOpet.menu.show();
+        });
         //鼠标点击
         menuDiv.onclick = function (e) {
             //todo
         };
         //鼠标离开
-        function onmouseleave(e) {
-            menu.hide();
-        };
-        if (menuDiv.onmouseleave === null) menuDiv.onmouseleave = onmouseleave;
-        else menuDiv.onmouseout = onmouseleave;
+        OwOpet.util.addMouseLeaveListen(menuDiv, function (e) {
+            if (config.autoHide) OwOpet.menu.hide();
+            else OwOpet.util.log("Lose focus", "Menu doesn't hide, config is always show");
+        });
+        
+        //默认添加的按钮组
+        (function () {
+            //隐藏宠物
+            if (config.defaultButtons.hideButton.showed) (function () {
+                var hideButton = document.createElement("p");
+                hideButton.textContent = "hide";
+                hideButton.onclick = function (e) {
+                    var byePanel = document.createElement("div");
+                    byePanel.textContent = config.defaultButtons.hideButton.bye;
+                    menu.changePanel(menu.addDefaultButtonStyle(byePanel));
+                    OwOpet.hide();
+                    
+                    var showButton = document.createElement("div");
+                    showButton.textContent = "show pet";
+                    menu.addDefaultButtonStyle(showButton);
+                    showButton.style.position = "fixed";
+                    showButton.style.right = "0px";
+                    showButton.style.bottom = "0px";
+                    showButton.style.margin = "6px";
+                    showButton.onclick = function (e) {
+                        OwOpet.show();
+                        showButton.remove();
+                        
+                        var hiPanel = document.createElement("div");
+                        hiPanel.textContent = config.defaultButtons.hideButton.hello;
+                        menu.changePanel(menu.addDefaultButtonStyle(hiPanel));
+                        OwOpet.menu.show();
+                        setTimeout(function () {
+                            if (config.autoHide) OwOpet.menu.hide();
+                            else menu.changePanel(menuPanel); 
+                        }, 1000);
+                    }
+                    setTimeout(function () {
+                        showed = false;
+                        menuDiv.innerHTML = "";
+                        menuDiv.remove();
+                        menuDiv.appendChild(menuPanel);
+                        document.body.appendChild(showButton);
+                    }, 1000);
+                }
+                OwOpet.menu.add(menu.addDefaultButtonStyle(hideButton));
+            }());
+        }());
     };
     
     //保护性装饰器
@@ -474,6 +594,21 @@ OwOpet.util.info("Init", "Main body is ready.");
         };
     }
     
+    /** 为按钮添加默认样式 */
+    OwOpet.menu.addDefaultButtonStyle = protect(function (button) {
+        return menu.addDefaultButtonStyle(button);
+    });
+    
+    /** 切换整个按钮面板 */
+    OwOpet.menu.changePanel = protect(function (panel) {
+        return menu.changePanel(panel);
+    });
+    
+    /** 添加新的按纽 */
+    OwOpet.menu.add = protect(function (button) {
+        return menu.add(button);
+    });
+    
     /** 显示 */
     OwOpet.menu.show = protect(function () {
         return menu.show();
@@ -484,9 +619,9 @@ OwOpet.util.info("Init", "Main body is ready.");
         return menu.hide();
     });
     
-    /** 移动 */
-    OwOpet.menu.move = protect(function (petCoord) {
-        return menu.move(petCoord);
+    /** 跟随 */
+    OwOpet.menu.follow = protect(function (coordX, coordY) {
+        return menu.follow(coordX, coordY);
     });
     
     /** 释放 */
@@ -500,6 +635,29 @@ OwOpet.util.info("Init", "Main body is ready.");
 }());
 OwOpet.util.info("Init", "Menu module is ready.");
 
+
+/** OwOpet.chat 聊天模块 */
+(function () {
+    var config = OwOpet.chat.config;
+    
+    OwOpet.chat.getPanel = function () {
+        var panelDiv = document.createElement("div");
+        panelDiv.style.maxWidth = config.maxWidth;
+        panelDiv.style.display = "inline-block";
+        panelDiv.style.paddingLeft = "6px";
+        panelDiv.style.paddingRight = "6px";
+        panelDiv.style.backgroundColor = "white";
+        panelDiv.style.boxShadow = "0px 0px 8px #888";
+        panelDiv.style.borderRadius = "6px";
+        panelDiv.style.border = "white 3px solid";
+            
+        panelDiv.className = config.class;  //允许用户自定义的class
+        
+        panelDiv.textContent = config.defaultWords[0];
+        
+        return panelDiv;
+    };
+}());
 
 /** default items 默认初始项 */
 (function () {
