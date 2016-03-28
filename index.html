@@ -11,8 +11,24 @@
     <!-- 宠物 -->
     <script src="./js/owopet.js"></script>
     <script>
+        OwOpet.config.image = "./image/feihe.png";
+        OwOpet.config.cursor = "simple";
         OwOpet.config.coord = [0.5, 0.5, 99];
         OwOpet.config.axis = [0.5, 0.5];
+        OwOpet.menu.config.infoPanel = {
+            "title": "萌宠信息",
+            "keyMap": { "name": "姓名", "gender": "性别", "birth": "生日", "master": "主人", "home": "小窝", "github": "GitHub", "adopt": "领养", "back": "返回" },  //信息面板上的键名
+            "class": "" 
+        };
+        OwOpet.menu.config.defaultButtons = {
+            "hideButton": {
+                "showed": true, "text": "隐藏", "bye": "我会想念你的，再见~",
+                "showButton": { "showed": true, "text": "召唤宠物", "hello": "WoW, 萌萌哒OwO又回来咯!!!" }
+            },
+            "topButton": { "showed": true, "text": "顶部" },
+            "homeButton": { "showed": true, "text": "首页", "url": "./index.html" }
+        };
+        OwOpet.chat.config.defaultWords = ["爱冷剑，怜悲箫，月下狼孤啸；<br />轻点画，慢勾描，云中人逍遥。"]
         setTimeout(OwOpet.init, 100);
     </script>
 </body>
