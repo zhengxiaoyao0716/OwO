@@ -2,9 +2,9 @@
 var OwOpet = {
     "info": {
         "name": "OwO",
-        "gender": "Boy",
-        "birth": "2016/3/6",
-        "master": "zhengxiaoya0716",
+        "gender": "--",
+        "birth": "--",
+        "master": "--",
         "home": "http://pet.zheng0716.com"
     },
     "config": {
@@ -39,7 +39,7 @@ var OwOpet = {
                     "showButton": { "showed": true, "text": "call pet", "hello": "WoW, OwO comed back!!!" }
                 },
                 "topButton": { "showed": true, "text": "top" },
-                "homeButton": { "showed": true, "text": "home", "url": "./index.html" }
+                "homeButton": { "showed": true, "text": "home" }
             },
             "onclick": function () {}
         }
@@ -425,8 +425,6 @@ OwOpet.util.info("Init", "Main body is ready.");
         menuDiv.className = config.class; //允许用户自定义的class
         var menuPanel = document.createElement("div");
         menuDiv.appendChild(menuPanel);
-        var infoButton = document.createElement("p");
-        infoButton.textContent = "OwO";
         
         //添加默认样式
         menu.addDefaultButtonStyle = function (button, cssFloat) {
@@ -451,7 +449,6 @@ OwOpet.util.info("Init", "Main body is ready.");
             
             return button;
         }
-        menu.addDefaultButtonStyle(infoButton);
         
         //切换按钮面板
         menu.changePanel = function(panel) {
@@ -464,7 +461,23 @@ OwOpet.util.info("Init", "Main body is ready.");
                 menu.show();
             }
         };
-        infoButton.onclick = function(e) {
+        
+        //添加按钮
+        menu.add = function (button) {
+            menuPanel.appendChild(button);
+        };
+        menu.add(OwOpet.chat.getPanel());
+        menu.add(document.createElement("br"));
+        
+        //快速添加文字按钮
+        menu.quickAdd = function (text, func, cssFloat) {
+            var button = document.createElement("p");
+            button.textContent = text;
+            menu.addDefaultButtonStyle(button, cssFloat);
+            button.onclick = func;
+            menu.add(button);
+        };
+        menu.quickAdd("OwO", function(e) {
             var infoConf = config.infoPanel;
             var keyMap = infoConf.keyMap;
             var info = OwOpet.info;
@@ -517,15 +530,7 @@ OwOpet.util.info("Init", "Main body is ready.");
             infoPanel.appendChild(sideDiv);
             infoPanel.className = infoConf.class;
             OwOpet.menu.changePanel(infoPanel);
-        }
-        
-        //添加按钮
-        menu.add = function (button) {
-            menuPanel.appendChild(button);
-        };
-        menu.add(OwOpet.chat.getPanel());
-        menu.add(document.createElement("br"));
-        menu.add(infoButton);
+        });
         
         var coord;
         //跟随
@@ -620,10 +625,9 @@ OwOpet.util.info("Init", "Main body is ready.");
         //默认添加的按钮组
         (function () {
             //隐藏宠物
-            if (config.defaultButtons.hideButton.showed) (function () {
-                var button = document.createElement("p");
-                button.textContent = config.defaultButtons.hideButton.text;
-                button.onclick = function (e) {
+            if (config.defaultButtons.hideButton.showed) OwOpet.menu.quickAdd(
+                config.defaultButtons.hideButton.text,
+                function (e) {
                     var byePanel = document.createElement("div");
                     byePanel.innerHTML = config.defaultButtons.hideButton.bye;
                     menu.changePanel(menu.addDefaultButtonStyle(byePanel));
@@ -659,26 +663,21 @@ OwOpet.util.info("Init", "Main body is ready.");
                         document.body.appendChild(showButton);
                     }, 1000);
                 }
-                OwOpet.menu.add(menu.addDefaultButtonStyle(button));
-            }());
+            );
             //返回顶部
-            if (config.defaultButtons.topButton.showed) (function () {
-                var button = document.createElement("p");
-                button.textContent = config.defaultButtons.topButton.text;
-                button.onclick = function (e) {
+            if (config.defaultButtons.topButton.showed) OwOpet.menu.quickAdd(
+                config.defaultButtons.topButton.text,
+                function (e) {
                     scrollTo(0, 0);
-                };
-                OwOpet.menu.add(menu.addDefaultButtonStyle(button));
-            }());
+                }
+            );
             //跳转首页
-            if (config.defaultButtons.homeButton.showed) (function () {
-                var button = document.createElement("p");
-                button.textContent = config.defaultButtons.homeButton.text;
-                button.onclick = function (e) {
-                    window.location.href = config.defaultButtons.homeButton.url;
-                };
-                OwOpet.menu.add(menu.addDefaultButtonStyle(button));
-            }());
+            if (config.defaultButtons.homeButton.showed) OwOpet.menu.quickAdd(
+                config.defaultButtons.homeButton.text,
+                function (e) {
+                    window.location.href = OwOpet.info.home;
+                }
+            );
         }());
     };
     
@@ -696,8 +695,8 @@ OwOpet.util.info("Init", "Main body is ready.");
     }
     
     /** 为按钮添加默认样式 */
-    OwOpet.menu.addDefaultButtonStyle = protect(function (button) {
-        return menu.addDefaultButtonStyle(button);
+    OwOpet.menu.addDefaultButtonStyle = protect(function (button, cssFloat) {
+        return menu.addDefaultButtonStyle(button, cssFloat);
     });
     
     /** 切换整个按钮面板 */
@@ -708,6 +707,11 @@ OwOpet.util.info("Init", "Main body is ready.");
     /** 添加新的按纽 */
     OwOpet.menu.add = protect(function (button) {
         return menu.add(button);
+    });
+    
+    /** 快速添加文字按钮 */
+    OwOpet.menu.quickAdd = protect(function (text, func, cssFloat) {
+        return menu.quickAdd(text, func, cssFloat);
     });
     
     /** 显示 */
