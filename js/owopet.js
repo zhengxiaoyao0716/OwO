@@ -25,7 +25,8 @@ var OwOpet = {
         "cursor": "moe",    //"moe", "simple" or url
         "title": "OwO，I'm a pet~",
         "draggable": true,
-        "onclick": function () {}
+        "onTouch": undefined,   //function (perX, perY) { ... }, 参数是鼠标按下位置占比，返回true则不会再传递到onClick事件
+        "onClick": undefined    //function (perX, perY) {} 参数同上
     },
     "menu": {
         "config": {
@@ -342,15 +343,17 @@ OwOpet.util.info("Init", "Base utilities is ready.");
             OwOpet.menu.show();
         });
         var pressed = false;
-        var offset = [0, 0];
+        var offset;
+        var percent;
         //鼠标按下
         petDiv.onmousedown = function (e) {
             pressed = config.draggable && true;
-            offset[0] = e.pageX - coord[0];
-            offset[1] = e.pageY - coord[1];
-            
-            OwOpet.menu.show();
-            config.onclick();
+            offset = [e.pageX - coord[0], e.pageY - coord[1]]
+            if (config.onClick) {
+                var perX = (e.layerX || e.offsetX) / petDiv.clientWidth;
+                var perY = (e.layerY || e.offsetY) / petDiv.clientHeight;
+                percent = (config.onTouch && config.onTouch(perX, perY)) ? undefined : [perX, perY];
+            }
         };
         var moved = false;
         //鼠标移动
@@ -376,13 +379,16 @@ OwOpet.util.info("Init", "Base utilities is ready.");
                 OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.2 : 1.2) * petDiv.clientHeight);
                 return;
             }
-            //var perX = (e.layerX || e.offsetX) / petDiv.clientWidth;
-            //var perY = (e.layerY || e.offsetY) / petDiv.clientHeight;
+            if (config.onClick) {
+                var perX = (e.layerX || e.offsetX) / petDiv.clientWidth;
+                var perY = (e.layerY || e.offsetY) / petDiv.clientHeight;
+                if (percent && percent[0] == perX && percent[1] == perY) config.onClick(perX, perY);
+                percent = undefined;
+            }
         };
         //鼠标离开
         OwOpet.util.addMouseLeaveListen(petDiv, function (e) {
             pressed = false;
-            
             
             if (OwOpet.menu.config.autoHide) OwOpet.menu.hide();
             else OwOpet.util.log("Lose focus", "Menu doesn't hide, config is always show");
