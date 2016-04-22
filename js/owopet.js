@@ -564,9 +564,10 @@ OwOpet.util.info("Init", "Main body is ready.");
         });
         
         var coord;
+        rect = OwOpet.config.parent.getBoundingClientRect();
         //跟随
         menu.follow = function (coordX, coordY) {
-            coord = [coordX, coordY];
+            coord = [coordX + rect.left, coordY + rect.top];
             
             if (!config.autoHide) OwOpet.menu.show();
             if (showed)
