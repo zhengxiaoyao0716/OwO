@@ -459,11 +459,9 @@ OwOpet.util.info("Init", "Main body is ready.");
         
         //添加默认样式
         menu.addDefaultButtonStyle = function (button, cssFloat) {
-            button.style.display = "inline-block";
             button.style.paddingLeft = "6px";
             button.style.paddingRight = "6px";
-            button.style.marginLeft = "6px";
-            button.style.marginRight = "6px";
+            button.style.margin = "6px";
             button.style.cursor = "pointer";
             button.style.backgroundColor = config.bgColor;
             button.style.boxShadow = "0px 0px 8px " + config.shadowColor;
@@ -527,11 +525,9 @@ OwOpet.util.info("Init", "Main body is ready.");
             infoDiv.style.backgroundColor = config.bgColor;
             infoDiv.style.boxShadow = "0px 0px 8px " + config.shadowColor;
             infoDiv.style.borderRadius = "6px";
-            infoDiv.style.display = "inline-block";
             infoDiv.style.cssFloat = "left";
             
             var sideDiv = document.createElement("div");
-            sideDiv.style.display = "inline-block";
             sideDiv.style.cssFloat = "right";
             sideDiv.style.marginRight = "10px";
             //GitHub
@@ -647,7 +643,7 @@ OwOpet.util.info("Init", "Main body is ready.");
             OwOpet.menu.show();
         });
         //鼠标点击
-        menuDiv.onclick = config.onclick
+        menuDiv.onclick = config.onclick;
         //鼠标离开
         OwOpet.util.addMouseLeaveListen(menuDiv, function (e) {
             if (config.autoHide) OwOpet.menu.hide();
@@ -780,7 +776,6 @@ OwOpet.util.info("Init", "Menu module is ready.");
     OwOpet.chat.getPanel = function () {
         var panelDiv = document.createElement("div");
         panelDiv.style.maxWidth = config.maxWidth;
-        panelDiv.style.display = "inline-block";
         panelDiv.style.padding = "6px";
         panelDiv.style.backgroundColor = config.bgColor;
         panelDiv.style.boxShadow = "0px 0px 8px " + config.shadowColor;
