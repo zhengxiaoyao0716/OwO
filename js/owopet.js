@@ -23,7 +23,7 @@ var OwOpet = {
         "coord": [1, 0],    //[(0, 1), (0, 1)]
         "axis": [1, 0],     //[(0, 1), (0, 1)]
         "cursor": "moe",    //"moe", "simple" or url
-        "title": "OwO，I'm a pet~",
+        "title": "OwO, I'm a cute pet~",
         "draggable": true,
         "onTouch": undefined,   //function (perX, perY) { ... }, 参数是鼠标按下位置占比，返回true则不会再传递到onClick事件
         "onClick": undefined    //function (perX, perY) {} 参数同上
@@ -58,7 +58,7 @@ var OwOpet = {
             "class": "",            //在class之前的属性可以被用户自定义的css覆盖，在class之后的属性不会
             "bgColor": "white",
             "shadowColor": "#888",
-            "defaultWords": ["Do you like me? Do you think I'm cute?"]
+            "defaultWords": ["Best wish to you from the two dimensional world."]
         }
     },
     "util": {
@@ -77,6 +77,7 @@ var OwOpet = {
 (function () {
     //配置成中文
     OwOpet.locale.chinese = function () {
+        OwOpet.config.title = "我是来自二次元的萌宠OwO~";
         OwOpet.menu.config.infoPanel = {
             "title": "萌宠信息",
             "keyMap": { "name": "姓名", "gender": "性别", "birth": "生日", "master": "主人", "home": "小窝", "github": "GitHub", "adopt": "领养", "back": "返回" },  //信息面板上的键名
@@ -90,7 +91,7 @@ var OwOpet = {
             "topButton": { "showed": true, "text": "顶部" },
             "homeButton": { "showed": true, "text": "回家" }
         };
-        OwOpet.chat.config.defaultWords = ["爱冷剑，怜悲箫，月下狼孤啸；<br />轻点画，慢勾描，云中人逍遥。"]
+        OwOpet.chat.config.defaultWords = ["OwO为你送上来自二次元的问候~"]
     };
 }());
 
@@ -327,7 +328,7 @@ OwOpet.util.info("Init", "Base utilities is ready.");
             petDiv.style.left = coord[0] + "px";
             petDiv.style.top = coord[1] + "px";
             
-            OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.2 : 1.2) * petDiv.clientHeight);
+            OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.1 : 1.1) * petDiv.clientHeight);
         };
         OwOpet.menu.init();
         pet.resize();
@@ -366,7 +367,7 @@ OwOpet.util.info("Init", "Base utilities is ready.");
             petDiv.style.left = coord[0] + "px";
             petDiv.style.top = coord[1] + "px";
             
-            if (OwOpet.menu.config.strictFollow) OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.2 : 1.2) * petDiv.clientHeight);
+            if (OwOpet.menu.config.strictFollow) OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.1 : 1.1) * petDiv.clientHeight);
         };
         //鼠标抬起
         petDiv.onmouseup = function (e) {
@@ -376,7 +377,7 @@ OwOpet.util.info("Init", "Base utilities is ready.");
             {
                 moved = false;
                 
-                OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.2 : 1.2) * petDiv.clientHeight);
+                OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.1 : 1.1) * petDiv.clientHeight);
                 return;
             }
             if (config.onClick) {

@@ -12,6 +12,8 @@
     <script src="./js/owopet.js"></script>
     <div style="background: #03A9F4; width: 300px; height: 150px; margin-top: 150px; margin-left: auto; margin-right: auto; position: relative;"></div>
     <script>
+        OwOpet.locale.chinese();
+        
         OwOpet.info = {
             "name": "OwO",
             "gender": "Boy",
@@ -23,10 +25,10 @@
         OwOpet.config.cursor = "simple";
         OwOpet.config.parent = document.getElementsByTagName("div")[0];
         OwOpet.config.position = "absolute";
-        OwOpet.config.coord = [1, 1, 99];
-        OwOpet.config.axis = [1, 1];
+        OwOpet.config.coord = [0.5, 0.5, 99];
+        OwOpet.config.axis = [0.5, 0.5];
+        OwOpet.chat.config.defaultWords = ["爱冷剑，怜悲箫，月下狼孤啸；<br />轻点画，慢勾描，云中人逍遥。"];
         
-        OwOpet.locale.chinese();
         setTimeout(OwOpet.init, 100);
     </script>
 </body>
