@@ -11,10 +11,17 @@ var OwOpet = {
         "image": "",
         "anim": {
             //todo
+            "randAct": [
+                { "probability": 0.1, "frames": ["imageUrl", "", ""], "speed": 0.5 },
+                {},
+                {}
+            ]
         },
+        "parent": document.body,
         "position": "fixed",
-        "coord": [1, 0, 99],
-        "axis": [1, 0],
+        "zIndex": 99,
+        "coord": [1, 0],    //[(0, 1), (0, 1)]
+        "axis": [1, 0],     //[(0, 1), (0, 1)]
         "cursor": "moe",    //"moe", "simple" or url
         "title": "OwO，I'm a pet~",
         "draggable": true,
@@ -62,8 +69,30 @@ var OwOpet = {
             "error": true,
             "monitor": true
         }
-    }
+    },
+    "locale": {}    //本地化，将默认项翻译成本地语言
 };
+/* 本地化模块 */
+(function () {
+    //配置成中文
+    OwOpet.locale.chinese = function () {
+        OwOpet.menu.config.infoPanel = {
+            "title": "萌宠信息",
+            "keyMap": { "name": "姓名", "gender": "性别", "birth": "生日", "master": "主人", "home": "小窝", "github": "GitHub", "adopt": "领养", "back": "返回" },  //信息面板上的键名
+            "class": "" 
+        };
+        OwOpet.menu.config.defaultButtons = {
+            "hideButton": {
+                "showed": true, "text": "隐藏", "bye": "我会想念你的，再见~",
+                "showButton": { "showed": true, "text": "召唤宠物", "hello": "WoW, 萌萌哒OwO又回来咯!!!" }
+            },
+            "topButton": { "showed": true, "text": "顶部" },
+            "homeButton": { "showed": true, "text": "回家" }
+        };
+        OwOpet.chat.config.defaultWords = ["爱冷剑，怜悲箫，月下狼孤啸；<br />轻点画，慢勾描，云中人逍遥。"]
+    };
+}());
+
 /**
  * 初始化并召唤宠物.
  * 请完成所有自定义配置
@@ -156,6 +185,7 @@ OwOpet.init = function () {
     (function () {
         var requestAnimationFrame = window.requestAnimationFrame;
         var cancelAnimationFrame = window.cancelAnimationFrame;
+        //优化，多数情况到此为止，后面一大段省了
         if ( requestAnimationFrame && cancelAnimationFrame ) return;
         
         var lastTime = 0;
@@ -250,7 +280,7 @@ OwOpet.util.info("Init", "Base utilities is ready.");
         var petDiv = document.createElement("div");
         petDiv.appendChild(petImg);
         petDiv.style.position = config.position;
-        petDiv.style.zIndex = String(config.coord[2]);
+        petDiv.style.zIndex = config.zIndex;
         
         var showed;
         //显示
@@ -261,7 +291,7 @@ OwOpet.util.info("Init", "Base utilities is ready.");
                 return;
             }
             
-            document.body.appendChild(petDiv);
+            config.parent.appendChild(petDiv);
             showed = true;
         };
         pet.show();
@@ -289,8 +319,8 @@ OwOpet.util.info("Init", "Base utilities is ready.");
                 return;
             }
             
-            coord[0] = config.coord[0] * document.documentElement.clientWidth;
-            coord[1] = config.coord[1] * document.documentElement.clientHeight;
+            coord[0] = config.coord[0] * config.parent.clientWidth;
+            coord[1] = config.coord[1] * config.parent.clientHeight;
             coord[0] -= config.axis[0] * petDiv.clientWidth;
             coord[1] -= config.axis[1] * petDiv.clientHeight;
             petDiv.style.left = coord[0] + "px";
@@ -319,6 +349,7 @@ OwOpet.util.info("Init", "Base utilities is ready.");
             offset[0] = e.pageX - coord[0];
             offset[1] = e.pageY - coord[1];
             
+            OwOpet.menu.show();
             config.onclick();
         };
         var moved = false;
@@ -421,7 +452,7 @@ OwOpet.util.info("Init", "Main body is ready.");
         
         var menuDiv = document.createElement("div");
         menuDiv.style.position = OwOpet.config.position;
-        menuDiv.style.zIndex = String(1 + OwOpet.config.coord[2]);
+        menuDiv.style.zIndex = 1 + OwOpet.config.zIndex;
         menuDiv.className = config.class; //允许用户自定义的class
         var menuPanel = document.createElement("div");
         menuDiv.appendChild(menuPanel);
@@ -779,5 +810,8 @@ OwOpet.util.info("Init", "Menu module is ready.");
 OwOpet.util.info("Init", "Initialization complete.");
 
 
+OwOpet.init = function () {
+    OwOpet.util.warn("Init field", "Function 'init' has already been used so that it was been destroyed.")
+};
 return OwOpet.call();
 };
