@@ -1,3 +1,13 @@
+/*
+ * ================================================================
+ * OwOpet: web pet plugin - zhengxiaoyao0716
+ * http://pet.zheng0716.com
+ * ----------------------------------------------------------------
+ * Javascript released under the Apache2.0 license
+ * https://github.com/zhengxiaoyao0716/OwOpet/raw/gh-pages/LICENSE
+ * ================================================================
+ */
+
 /** 默认配置，请酌情修改 */
 var OwOpet = {
     "info": {
@@ -9,14 +19,6 @@ var OwOpet = {
     },
     "config": {
         "image": "",
-        "anim": {
-            //todo
-            "randAct": [
-                { "probability": 0.1, "frames": ["imageUrl", "", ""], "speed": 0.5 },
-                {},
-                {}
-            ]
-        },
         "parent": document.body,
         "position": "fixed",
         "zIndex": 99,
@@ -26,7 +28,35 @@ var OwOpet = {
         "title": "OwO, I'm a cute pet~",
         "draggable": true,
         "onTouch": undefined,   //function (perX, perY) { ... }, 参数是鼠标按下位置占比，返回true则不会再传递到onClick事件
-        "onClick": undefined    //function (perX, perY) {} 参数同上
+        "onClick": undefined    //function (perX, perY) { ... } 参数同上，注意这不是浏览器默认的onclick
+    },
+    "anim": {
+        "config": {
+            "type": 0,  //0: random, 1: sequence
+            /**
+             * 动画列，有random、sequence两种模式，写法不同.
+             * ------------------------------------------------------------
+             * random: 随机动画，从散列抽取执行.
+             * e.g: 0, {actionA}, 1, {actionB}, 4, {actionC}, 9, {"pause": 500}, 30
+             * 解析：action1播放的概率为1/30，action2为1/10，action3为1/6。为了提高效率，你应该尽量把概率小的写在前面
+             * ------------------------------------------------------------
+             * sequence: 顺序动画，沿队列依次执行.
+             * e.g: {actionA}, {"pause": 500}, {actionB}, {"pause": 1000}, {actionC}
+             * 解析：播放actionA -> 停顿0.5s -> 播放actionB -> 停顿1s -> 播放actionC -> 播放actionA -> 循环...
+             * ------------------------------------------------------------
+             * {actionX}是指描述动作集行为的JsonObject.
+             * e.g: {"frames": ["imageUrl", , ,... ], "delay": 0, "pause": 0, "repeat": 0, "position" [moveX, moveY, moveZ], }
+             * @param frames 动画帧图的资源路径的数组，数组长度决定帧数，undefined表示不变，""表示清除
+             * @param delay 动画帧切换的冷却时间，单位为浏览器帧时，近似 1s = 60帧
+             * @param pause 动画播放结束暂停时间，单位为毫秒，只会影响到动画列内的动作集
+             * @param repeat 重复次数，无限循环不需要靠这个参数解决，anim只放一个动作集就好了
+             * @param position 宠物每帧在x、y、z三个方向上的位移，其中z位移相当于缩放(scale)，而不是改变图层(z-index)
+             * @return time 一个动作集完整播放结束所用的时间 time = frames.length * (1 + delay) / 60 * repeat + pause / 1000 (s)
+             * ------------------------------------------------------------
+             * 我说的应该还算详细吧，看大伙的领悟能力咯。。。
+             */
+            "queue": []
+        }
     },
     "menu": {
         "config": {
@@ -49,7 +79,7 @@ var OwOpet = {
                 "topButton": { "showed": true, "text": "top" },
                 "homeButton": { "showed": true, "text": "home" }
             },
-            "onclick": function () {}
+            "onclick": undefined    //会传给浏览器默认的onclick事件，鼠标点击菜单区域内（包括按钮、聊天面板等等）触发
         }
     },
     "chat": {
@@ -441,6 +471,72 @@ OwOpet.util.info("Init", "Base utilities is ready.");
     OwOpet.util.monitor(OwOpet, "OwOpet");
 }());
 OwOpet.util.info("Init", "Main body is ready.");
+
+
+/** OwOpet.anim 动画模块 */
+(function () {
+    var config = OwOpet.anim.config;
+    
+    var anim;
+    //播放
+    OwOpet.anim.play = function (param) {
+        if (anim)
+        {
+            OwOpet.util.warn("IllegalState", "Animation is playing.");
+            return;
+        }
+        anim = {};
+        
+        //随机抽取
+        function extract() {
+            if (config.type != 1) return false;
+            //todo
+            return function () {
+                
+            };
+        };
+        //顺序执行
+        function enqueue() {
+            if (config.type != 0) return false;
+            
+            //todo
+            return function () {
+                
+            };
+        };
+        
+        //请求一个动作集
+        anim.reqAction = extract() || enqueue();
+        //todo
+    };
+    
+    //保护性装饰器
+    function protect(func) {
+        return function () {
+            if (!anim)
+            {
+                OwOpet.util.warn("IllegalState", "Animation not playing.");
+                return;
+            }
+            
+            return func.apply(OwOpet.anim, arguments);
+        };
+    }
+    
+    /** 暂停 */
+    OwOpet.anim.pause = protect(function () {
+        return anim.pause();
+    });
+    
+    /** 停止 */
+    OwOpet.anim.stop = protect(function () {
+        return anim.stop();
+    });
+    
+    //监视
+    OwOpet.util.monitor(OwOpet.anim, "OwOpet.anim");
+}());
+OwOpet.util.info("Init", "Animation module is ready.");
 
 
 /** OwOpet.menu 菜单模块 */
