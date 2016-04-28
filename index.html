@@ -21,12 +21,24 @@
             "master": "zhengxiaoya0716",
             "home": "http://xiaoyao.zheng0716.com"
         };
+        
         OwOpet.config.image = "./image/feihe.png";
         OwOpet.config.cursor = "simple";
         OwOpet.config.parent = document.getElementsByTagName("div")[0];
         OwOpet.config.position = "absolute";
-        OwOpet.config.coord = [0.5, 0.5, 99];
-        OwOpet.config.axis = [0.5, 0.5];
+        OwOpet.config.coord = [1, 1, 1];
+        OwOpet.config.axis = [1, 1];
+        
+        OwOpet.anim.config.type = 1;
+        var frameArray = [];
+        var imgNum;
+        for (imgNum = 1; imgNum < 30; imgNum++) {
+            frameArray.push("./image/feihe/" + imgNum + ".png");
+        }
+        OwOpet.anim.config.queue = [
+            {"frames": frameArray, "delay": 1, "repeat": 8, "offset": [-8, -1.5, -0.5]}
+        ]
+        
         OwOpet.chat.config.defaultWords = ["爱冷剑，怜悲箫，月下狼孤啸；<br />轻点画，慢勾描，云中人逍遥。"];
         
         setTimeout(OwOpet.init, 100);

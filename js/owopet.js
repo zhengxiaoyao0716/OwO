@@ -18,17 +18,17 @@ var OwOpet = {
         "home": "http://pet.zheng0716.com"
     },
     "config": {
-        "image": "",
-        "parent": document.body,
+        "image": "",        //宠物无动作时显示的图片
+        "parent": document.documentElement,     //在页面有DTD的情况下，document.body 的宽高不准确
         "position": "fixed",
         "zIndex": 99,
-        "coord": [1, 0],    //[(0, 1), (0, 1)]
+        "coord": [1, 0, 1],    //[(0, 1), (0, 1), (0, +oo)]  coord[2]是z轴上的坐标，实际上相当于缩放，而不是图层。0为最小不可见，1为原大小
         "axis": [1, 0],     //[(0, 1), (0, 1)]
         "cursor": "moe",    //"moe", "simple" or url
         "title": "OwO, I'm a cute pet~",
         "draggable": true,
-        "onTouch": undefined,   //function (perX, perY) { ... }, 参数是鼠标按下位置占比，返回true则不会再传递到onClick事件
-        "onClick": undefined    //function (perX, perY) { ... } 参数同上，注意这不是浏览器默认的onclick
+        "onTouch": undefined,   //鼠标按下，function (perX, perY) { ... }, 参数是鼠标按下位置占比，返回true则不会再传递到onClick事件
+        "onClick": undefined    //鼠标按下后无拖动的抬起，function (perX, perY) { ... } 参数同上，注意这不是浏览器默认的onclick
     },
     "anim": {
         "config": {
@@ -37,25 +37,29 @@ var OwOpet = {
              * 动画列，有random、sequence两种模式，写法不同.
              * ------------------------------------------------------------
              * random: 随机动画，从散列抽取执行.
-             * e.g: 0, {actionA}, 1, {actionB}, 4, {actionC}, 9, {"pause": 500}, 30
+             * e.g: 0, {actionA}, 1, {actionB}, 4, {actionC}, 9, {"wait": 500}, 30
              * 解析：action1播放的概率为1/30，action2为1/10，action3为1/6。为了提高效率，你应该尽量把概率小的写在前面
              * ------------------------------------------------------------
              * sequence: 顺序动画，沿队列依次执行.
-             * e.g: {actionA}, {"pause": 500}, {actionB}, {"pause": 1000}, {actionC}
+             * e.g: {actionA}, {"wait": 500}, {actionB}, {"wait": 1000}, {actionC}
              * 解析：播放actionA -> 停顿0.5s -> 播放actionB -> 停顿1s -> 播放actionC -> 播放actionA -> 循环...
              * ------------------------------------------------------------
              * {actionX}是指描述动作集行为的JsonObject.
-             * e.g: {"frames": ["imageUrl", , ,... ], "delay": 0, "pause": 0, "repeat": 0, "position" [moveX, moveY, moveZ], }
+             * e.g: {"frames": ["imageUrl", , ,... ], "delay": 0, "wait": 0, "repeat": 0, "offset": [moveX, moveY, moveZ], "onFinish": function () {}}
              * @param frames 动画帧图的资源路径的数组，数组长度决定帧数，undefined表示不变，""表示清除
-             * @param delay 动画帧切换的冷却时间，单位为浏览器帧时，近似 1s = 60帧
-             * @param pause 动画播放结束暂停时间，单位为毫秒，只会影响到动画列内的动作集
+             * @param delay 动画帧切换的延时，单位为浏览器帧时，近似 1s = 60帧
+             * @param wait 动画播结束后等待时间，单位为毫秒，只会影响到动画列内的动作集
              * @param repeat 重复次数，无限循环不需要靠这个参数解决，anim只放一个动作集就好了
-             * @param position 宠物每帧在x、y、z三个方向上的位移，其中z位移相当于缩放(scale)，而不是改变图层(z-index)
-             * @return time 一个动作集完整播放结束所用的时间 time = frames.length * (1 + delay) / 60 * repeat + pause / 1000 (s)
+             * @param offset 宠物每帧在x、y、z三个方向上的位移，其中z位移相当于缩放(scale += offset[2] / 100)，而不是改变图层(zIndex)
+             * @param onFinish 动画播放结束时回调
+             * @return time 一个动作集完整播放结束所用的时间 time ~= frames.length * (1 + delay) / 60 * repeat + wait / 1000 (s)
              * ------------------------------------------------------------
              * 我说的应该还算详细吧，看大伙的领悟能力咯。。。
              */
-            "queue": []
+            "queue": [],
+            "play1Focus": true,    //当宠物获得光标焦点时，是否继续播放动画（不包括移动）
+            "move1Focus": false,    //当宠物获得光标焦点时，是否允许宠物移动的动画效果
+            "resize1Finish": true   //播放结束时是否回到初始状态
         }
     },
     "menu": {
@@ -85,7 +89,7 @@ var OwOpet = {
     "chat": {
         "config": {
             "maxWidth": "300px",
-            "class": "",            //在class之前的属性可以被用户自定义的css覆盖，在class之后的属性不会
+            "class": "",            //在class之前的属性可以被用户自定义的css覆盖，在class之后的属性不可以
             "bgColor": "white",
             "shadowColor": "#888",
             "defaultWords": ["Best wish to you from the two dimensional world."]
@@ -306,9 +310,18 @@ OwOpet.util.info("Init", "Base utilities is ready.");
         pet = {};
         
         var petImg = document.createElement("img");
-        petImg.src = config.image;
-        petImg.alt = "Load failed.";
         petImg.draggable = false;
+        petImg.src = config.image;
+        
+        var focus;
+        //是否有焦点
+        pet.isFocus = function () { return focus; };
+        
+        //设置纹理
+        pet.setTexture = function (texture) {
+            petImg.src = texture;
+        };
+        
         var petDiv = document.createElement("div");
         petDiv.appendChild(petImg);
         petDiv.style.position = config.position;
@@ -323,6 +336,8 @@ OwOpet.util.info("Init", "Base utilities is ready.");
                 return;
             }
             
+            focus = false;
+            OwOpet.anim.play();
             config.parent.appendChild(petDiv);
             showed = true;
         };
@@ -336,27 +351,46 @@ OwOpet.util.info("Init", "Base utilities is ready.");
                 return;
             }
             
+            OwOpet.anim.stop();
             petDiv.remove();
             showed = false;
             
             OwOpet.menu.hide();
         };
         
+        
         var coord = [];
-        //调整位置
+        //移动
+        pet.move = function(offset) {
+            coord[2] += (coord[2] * offset[2] / 100);
+            if (coord[2] < 0) coord[2] = 0; 
+            coord[0] += offset[0] * coord[2];
+            coord[1] += offset[1] * coord[2];
+            petDiv.style.left = coord[0] + "px";
+            petDiv.style.top = coord[1] + "px";
+            petDiv.style.transform = "scale(" + coord[2] + ", " + coord[2] + ")";
+            
+            if (OwOpet.menu.config.strictFollow) OwOpet.menu.follow(
+                coord[0] + 0.5 * petDiv.clientWidth,
+                coord[1] + (config.axis[1] > 0.5 ? -0.1 : 1.1) * petDiv.clientHeight
+            );
+        }
+        
+        //归位
         pet.resize = function () {
             if (!showed)
             {
                 OwOpet.util.warn("IllegalState", "Can not resized when hided.");
                 return;
             }
-            
             coord[0] = config.coord[0] * config.parent.clientWidth;
             coord[1] = config.coord[1] * config.parent.clientHeight;
             coord[0] -= config.axis[0] * petDiv.clientWidth;
             coord[1] -= config.axis[1] * petDiv.clientHeight;
             petDiv.style.left = coord[0] + "px";
             petDiv.style.top = coord[1] + "px";
+            coord[2] = config.coord[2];
+            petDiv.style.transform = undefined;
             
             OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.1 : 1.1) * petDiv.clientHeight);
         };
@@ -371,6 +405,8 @@ OwOpet.util.info("Init", "Base utilities is ready.");
         
         //鼠标进入
         OwOpet.util.addMouseEnterListen(petDiv, function (e) {
+            focus = true;
+            OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.1 : 1.1) * petDiv.clientHeight);
             OwOpet.menu.show();
         });
         var pressed = false;
@@ -397,7 +433,10 @@ OwOpet.util.info("Init", "Base utilities is ready.");
             petDiv.style.left = coord[0] + "px";
             petDiv.style.top = coord[1] + "px";
             
-            if (OwOpet.menu.config.strictFollow) OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.1 : 1.1) * petDiv.clientHeight);
+            if (OwOpet.menu.config.strictFollow) OwOpet.menu.follow(
+                coord[0] + 0.5 * petDiv.clientWidth,
+                coord[1] + (config.axis[1] > 0.5 ? -0.1 : 1.1) * petDiv.clientHeight
+            );
         };
         //鼠标抬起
         petDiv.onmouseup = function (e) {
@@ -406,7 +445,6 @@ OwOpet.util.info("Init", "Base utilities is ready.");
             if (moved)
             {
                 moved = false;
-                
                 OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.1 : 1.1) * petDiv.clientHeight);
                 return;
             }
@@ -419,6 +457,7 @@ OwOpet.util.info("Init", "Base utilities is ready.");
         };
         //鼠标离开
         OwOpet.util.addMouseLeaveListen(petDiv, function (e) {
+            focus = false;
             pressed = false;
             
             if (OwOpet.menu.config.autoHide) OwOpet.menu.hide();
@@ -439,24 +478,19 @@ OwOpet.util.info("Init", "Base utilities is ready.");
         };
     }
     
-    /** 隐藏 */
-    OwOpet.hide = protect(function () {
-        return pet.hide();
-    });
-    
     /** 显示 */
     OwOpet.show = protect(function () {
         return pet.show();
     });
     
+    /** 隐藏 */
+    OwOpet.hide = protect(function () {
+        return pet.hide();
+    });
+    
     /** 归位 */
     OwOpet.resize = protect(function () {
         return pet.resize();
-    });
-    
-    /** 移动 */
-    OwOpet.move = protect(function (left, right) {
-        pet.move(left, right);
     });
     
     /** 释放 */
@@ -469,6 +503,23 @@ OwOpet.util.info("Init", "Base utilities is ready.");
     
     //监视
     OwOpet.util.monitor(OwOpet, "OwOpet");
+    
+    /* 留给anim接口 */
+    
+    /** 是否获得焦点 */
+    OwOpet.anim.isFocus = protect(function () {
+        return pet.isFocus();
+    })
+    
+    /** 设置纹理 */
+    OwOpet.anim.setTexture = protect(function (texture) {
+        return pet.setTexture(texture);
+    })
+    
+    /** 移动位置 */
+    OwOpet.anim.move = protect(function (offset) {
+        return pet.move(offset);
+    })
 }());
 OwOpet.util.info("Init", "Main body is ready.");
 
@@ -485,29 +536,88 @@ OwOpet.util.info("Init", "Main body is ready.");
             OwOpet.util.warn("IllegalState", "Animation is playing.");
             return;
         }
+        if (config.queue == false)
+        {
+            OwOpet.util.warn("IllegalArgument", "Empty animation queue.");
+            return;
+        }
         anim = {};
         
-        //随机抽取
-        function extract() {
-            if (config.type != 1) return false;
-            //todo
-            return function () {
-                
-            };
-        };
-        //顺序执行
-        function enqueue() {
-            if (config.type != 0) return false;
-            
-            //todo
-            return function () {
-                
-            };
-        };
-        
         //请求一个动作集
-        anim.reqAction = extract() || enqueue();
-        //todo
+        var reqAction = (function () {
+            var queue = config.queue;
+            var index = -1;
+            //随机抽取
+            function extract() {
+                if (config.type != 0) return false;
+                
+                return function () {
+                    var randInt = parseInt(Math.random() * queue[queue.length - 1]);
+                    var _index;
+                    for (_index = queue.length - 3; _index >= 0; _index-=2) {
+                        if (queue[_index] < randInt) {
+                            if (_index == index) return reqAction();
+                            return queue[index + 1];
+                        }
+                    }
+                };
+            };
+            //顺序执行
+            function enqueue() {
+                if (config.type != 1) return false;
+                
+                return function () {
+                    if (++index >= queue.length) index = 0;
+                    return queue[index];
+                };
+            };
+            return extract() || enqueue();
+        }());
+        
+        var animationHandle;
+        //播放一个动画集
+        function playAction() {
+            var action = reqAction();
+            var index = -1;
+            var delay = action.delay || 0;
+            var repeat = action.repeat || 0;
+            function playFram() {
+                if (delay-- > 0) {
+                    animationHandle = OwOpet.util.requestAnimationFrame(playFram);
+                    return;
+                }
+                delay = action.delay;
+                
+                (OwOpet.anim.isFocus() && !config.move1Focus) || action.offset && OwOpet.anim.move(action.offset);
+                if (action.frames && repeat >= 0) {
+                    if (!OwOpet.anim.isFocus()) {
+                        if (++index >= action.frames.length) {
+                            repeat--;
+                            index = 0;
+                        }
+                        
+                        action.frames[index] != undefined && OwOpet.anim.setTexture(action.frames[index]);
+                    }
+                    else if (config.play1Focus) {
+                        if (++index >= action.frames.length) index = 0;
+                        
+                        action.frames[index] != undefined && OwOpet.anim.setTexture(action.frames[index]);
+                    }
+                    
+                    animationHandle = OwOpet.util.requestAnimationFrame(playFram);
+                    return;
+                }
+                
+                if (config.resize1Finish) {
+                    OwOpet.anim.setTexture(OwOpet.config.image);
+                    OwOpet.resize();
+                }
+                animationHandle = setTimeout(playAction, action.wait || 0);
+                action.onFinish && action.onFinish();
+            }
+            animationHandle = OwOpet.util.requestAnimationFrame(playFram);
+        }
+        playAction();
     };
     
     //保护性装饰器
@@ -523,18 +633,13 @@ OwOpet.util.info("Init", "Main body is ready.");
         };
     }
     
-    /** 暂停 */
-    OwOpet.anim.pause = protect(function () {
-        return anim.pause();
-    });
-    
     /** 停止 */
     OwOpet.anim.stop = protect(function () {
         return anim.stop();
     });
     
     //监视
-    OwOpet.util.monitor(OwOpet.anim, "OwOpet.anim");
+    //OwOpet.util.monitor(OwOpet.anim, "OwOpet.anim");
 }());
 OwOpet.util.info("Init", "Animation module is ready.");
 
@@ -587,7 +692,7 @@ OwOpet.util.info("Init", "Animation module is ready.");
             menuDiv.innerHTML = "";
             menuDiv.appendChild(panel);
             if (showed) {
-                //调整位置
+                //还原位置
                 showed = false;
                 menuDiv.remove();
                 menu.show();
@@ -664,7 +769,7 @@ OwOpet.util.info("Init", "Animation module is ready.");
         
         var coord;
         //跟随
-        menu.follow = function (coordX, coordY) {
+        menu.follow = function (coordX, coordY) {                
             rect = OwOpet.config.parent.getBoundingClientRect();
             coord = [coordX + rect.left, coordY + rect.top];
             
