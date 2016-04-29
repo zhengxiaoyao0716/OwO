@@ -1,34 +1,35 @@
 /*
  * ================================================================
- * OwOpet: web pet plugin - zhengxiaoyao0716
- * http://pet.zheng0716.com
+ * OwO: moe web plugin - zhengxiaoyao0716
+ * http://owo.zheng0716.com
  * ----------------------------------------------------------------
  * Javascript released under the Apache2.0 license
- * https://github.com/zhengxiaoyao0716/OwOpet/raw/gh-pages/LICENSE
+ * https://github.com/zhengxiaoyao0716/OwO/raw/gh-pages/LICENSE
  * ================================================================
  */
 
 /** 默认配置，请酌情修改 */
-var OwOpet = {
+var OwO = {
     "info": {
         "name": "OwO",
         "gender": "--",
         "birth": "--",
         "master": "--",
-        "home": "http://pet.zheng0716.com"
+        "home": {"name": "OwO收养所", "link": "http://owo.zheng0716.com"}
     },
     "config": {
-        "image": "",        //宠物无动作时显示的图片
+        "image": "",            //无动作时显示的图片
         "parent": document.documentElement,     //在页面有DTD的情况下，document.body 的宽高不准确
         "position": "fixed",
         "zIndex": 99,
-        "coord": [1, 0, 1],    //[(0, 1), (0, 1), (0, +oo)]  coord[2]是z轴上的坐标，实际上相当于缩放，而不是图层。0为最小不可见，1为原大小
-        "axis": [1, 0],     //[(0, 1), (0, 1)]
-        "cursor": "moe",    //"moe", "simple" or url
-        "title": "OwO, I'm a cute pet~",
-        "draggable": true,
+        "coord": [1, 1, 1],     //[(0, 1), (0, 1), (0, +oo)]  coord[2]是z轴上的坐标，实际上相当于缩放，而不是图层。0为最小不可见，1为原大小
+        "axis": [1, 1],         //[(0, 1), (0, 1)] 轴心位置。通过坐标coord、轴心axis两个参数就能很精确的定位了
+        "cursor": "moe",        //"moe", "simple" or url
+        "title": "OwO",
+        "draggableX": true,     //是否允许横向拖动
+        "draggableY": true,     //是否允许纵向拖动
         "onTouch": undefined,   //鼠标按下，function (perX, perY) { ... }, 参数是鼠标按下位置占比，返回true则不会再传递到onClick事件
-        "onClick": undefined    //鼠标按下后无拖动的抬起，function (perX, perY) { ... } 参数同上，注意这不是浏览器默认的onclick
+        "onClick": undefined    //鼠标按下后无移动原地抬起，function (perX, perY) { ... } 参数同上，注意这不是浏览器默认的onclick
     },
     "anim": {
         "config": {
@@ -37,11 +38,11 @@ var OwOpet = {
              * 动画列，有random、sequence两种模式，写法不同.
              * ------------------------------------------------------------
              * random: 随机动画，从散列抽取执行.
-             * e.g: 0, {actionA}, 1, {actionB}, 4, {actionC}, 9, {"wait": 500}, 30
+             * e.g: 0, [{actionA}, 1, {actionB}, 4, {actionC}, 9, {"wait": 500}, 30]
              * 解析：action1播放的概率为1/30，action2为1/10，action3为1/6。为了提高效率，你应该尽量把概率小的写在前面
              * ------------------------------------------------------------
              * sequence: 顺序动画，沿队列依次执行.
-             * e.g: {actionA}, {"wait": 500}, {actionB}, {"wait": 1000}, {actionC}
+             * e.g: [{actionA}, {"wait": 500}, {actionB}, {"wait": 1000}, {actionC}]
              * 解析：播放actionA -> 停顿0.5s -> 播放actionB -> 停顿1s -> 播放actionC -> 播放actionA -> 循环...
              * ------------------------------------------------------------
              * {actionX}是指描述动作集行为的JsonObject.
@@ -50,38 +51,41 @@ var OwOpet = {
              * @param delay 动画帧切换的延时，单位为浏览器帧时，近似 1s = 60帧
              * @param wait 动画播结束后等待时间，单位为毫秒，只会影响到动画列内的动作集
              * @param repeat 重复次数，无限循环不需要靠这个参数解决，anim只放一个动作集就好了
-             * @param offset 宠物每帧在x、y、z三个方向上的位移，其中z位移相当于缩放(scale += offset[2] / 100)，而不是改变图层(zIndex)
+             * @param offset 萌物每帧在x、y、z三个方向上的位移，其中z位移相当于缩放(scale += offset[2] / 100)，而不是改变图层(zIndex)
              * @param onFinish 动画播放结束时回调
              * @return time 一个动作集完整播放结束所用的时间 time ~= frames.length * (1 + delay) / 60 * repeat + wait / 1000 (s)
              * ------------------------------------------------------------
              * 我说的应该还算详细吧，看大伙的领悟能力咯。。。
              */
             "queue": [],
-            "play1Focus": true,    //当宠物获得光标焦点时，是否继续播放动画（不包括移动）
-            "move1Focus": false,    //当宠物获得光标焦点时，是否允许宠物移动的动画效果
+            "play1Focus": true,    //当萌物获得光标焦点时，是否继续播放动画（不包括移动）
+            "move1Focus": false,    //当萌物获得光标焦点时，是否允许萌物移动的动画效果
             "resize1Finish": true   //播放结束时是否回到初始状态
         }
     },
     "menu": {
         "config": {
             "class": "",            //在class之后的属性不会被用户自定义的css覆盖
+            "color": "black",
             "bgColor": "white",
             "shadowColor": "#888",
             "focusColor": "#aaa",
-            "strictFollow": false,  //是否严格跟随，即与宠物一起移动
+            "coord": [0, 0.5],      //相对萌物主体0代表萌物的最左(上)坐标处，1代表最右（下）坐标处
+            "axis": [1, 0.5],       //轴心位置，相对菜单主体，[0.5, 0.5]为中心
+            "strictFollow": false,  //是否严格跟随，即与萌物一起移动
             "autoHide": true,       //是否自动隐藏
             "infoPanel": {
-                "title": "OwOpet Information",
+                "title": "OwO Information",
                 "keyMap": { "name": "Name", "gender": "Gender", "birth": "Birth", "master": "Master", "home": "Home", "github": "GitHub", "adopt": "Adopt", "back": "Back" },   //信息面板上的键名
                 "class": ""
             },
             "defaultButtons": {
                 "hideButton": {
                     "showed": true, "text": "hide", "bye": "I'll miss you, goodbye~",
-                    "showButton": { "showed": true, "text": "call pet", "hello": "WoW, OwO comed back!!!" }
+                    "showButton": { "showed": true, "text": "call OwO", "hello": "WoW, OwO comed back!!!" }
                 },
                 "topButton": { "showed": true, "text": "top" },
-                "homeButton": { "showed": true, "text": "home" }
+                "homeButton": { "showed": true, "text": "home"}
             },
             "onclick": undefined    //会传给浏览器默认的onclick事件，鼠标点击菜单区域内（包括按钮、聊天面板等等）触发
         }
@@ -89,10 +93,15 @@ var OwOpet = {
     "chat": {
         "config": {
             "maxWidth": "300px",
-            "class": "",            //在class之前的属性可以被用户自定义的css覆盖，在class之后的属性不可以
-            "bgColor": "white",
-            "shadowColor": "#888",
-            "defaultWords": ["Best wish to you from the two dimensional world."]
+            "defaultWords": ["Best wish to you from the two dimensional world."],
+            "faces": {
+                /**
+                 * 表情包, "faceName": "faceImage".
+                 * e.g: "smile": "smile.png", "trick": "trick.png", "shy": "shy.png"
+                 * 解析：表情是指一帧立绘图，当聊天输出内容时指定faceName，则萌物会切换到相应的图片，即变换表情
+                 */
+            }
+            //todo 
         }
     },
     "util": {
@@ -110,39 +119,39 @@ var OwOpet = {
 /* 本地化模块 */
 (function () {
     //配置成中文
-    OwOpet.locale.chinese = function () {
-        OwOpet.config.title = "我是来自二次元的萌宠OwO~";
-        OwOpet.menu.config.infoPanel = {
+    OwO.locale.chinese = function () {
+        OwO.config.title = "我是来自二次元的萌宠OwO~";
+        OwO.menu.config.infoPanel = {
             "title": "萌宠信息",
-            "keyMap": { "name": "姓名", "gender": "性别", "birth": "生日", "master": "主人", "home": "小窝", "github": "GitHub", "adopt": "领养", "back": "返回" },  //信息面板上的键名
+            "keyMap": { "name": "姓名", "gender": "性别", "birth": "生日", "master": "主人", "home": "居所", "github": "GitHub", "adopt": "领养", "back": "返回" },  //信息面板上的键名
             "class": "" 
         };
-        OwOpet.menu.config.defaultButtons = {
+        OwO.menu.config.defaultButtons = {
             "hideButton": {
                 "showed": true, "text": "隐藏", "bye": "我会想念你的，再见~",
-                "showButton": { "showed": true, "text": "召唤宠物", "hello": "WoW, 萌萌哒OwO又回来咯!!!" }
+                "showButton": { "showed": true, "text": "召唤萌物", "hello": "WoW, 萌萌哒OwO又回来咯!!!" }
             },
             "topButton": { "showed": true, "text": "顶部" },
             "homeButton": { "showed": true, "text": "回家" }
         };
-        OwOpet.chat.config.defaultWords = ["OwO为你送上来自二次元的问候~"]
+        OwO.chat.config.defaultWords = ["OwO为你送上来自二次元的问候~"]
     };
 }());
 
 /**
- * 初始化并召唤宠物.
+ * 初始化并召唤萌物.
  * 请完成所有自定义配置
  * 然后再调用该方法进行初始化
- * 之后你将得到一系列操作宠物的方法
+ * 之后你将得到一系列操作萌物的方法
  * 但请勿再修改配置、
  * 我不保证之后的修改会生效
  */
-OwOpet.init = function () {
+OwO.init = function () {
 
 
-/** OwOpet.util 辅助方法 */
+/** OwO.util 辅助方法 */
 (function () {
-    var config = OwOpet.util.config;
+    var config = OwO.util.config;
     var workspace = console;
     
     //保护性装饰器
@@ -152,36 +161,36 @@ OwOpet.init = function () {
     }
     
     /** 一般信息 */
-    OwOpet.util.log = protect(config.log, function (flag, message) {
+    OwO.util.log = protect(config.log, function (flag, message) {
         workspace.log("[log]\t" + flag + ": " + message);
     });
     
     /** 调试信息 */
-    OwOpet.util.debug = protect(config.debug, function (flag, message) {
+    OwO.util.debug = protect(config.debug, function (flag, message) {
         workspace.debug("[debug]\t" + flag + ": " + message);
     });
     
     /** 提示信息 */
-    OwOpet.util.info = protect(config.info, function (flag, message) {
+    OwO.util.info = protect(config.info, function (flag, message) {
         workspace.info("[info]\t" + flag + ": " + message);
     });
     
     /** 警告信息 */
-    OwOpet.util.warn = protect(config.warn, function (flag, message) {
+    OwO.util.warn = protect(config.warn, function (flag, message) {
         workspace.warn("[warn]\t" + flag + ": " + message);
     });
     
     /** 错误信息 */
-    OwOpet.util.error = protect(config.error, function (flag, message) {
+    OwO.util.error = protect(config.error, function (flag, message) {
         workspace.error("[error]\t" + flag + ": " + message);
     });
     
     /** 信息组 */
-    OwOpet.util.group = function (content) { workspace.group(content); };
-    OwOpet.util.groupEnd = function (content) { workspace.groupEnd(content); };
+    OwO.util.group = function (content) { workspace.group(content); };
+    OwO.util.groupEnd = function (content) { workspace.groupEnd(content); };
     
     /** 步进监视 */
-    OwOpet.util.monitor = (function () {
+    OwO.util.monitor = (function () {
         if (!config.monitor) return function () {};
         
         //输出日志装饰器
@@ -189,17 +198,17 @@ OwOpet.init = function () {
             return function () {
                 var result;
                 
-                OwOpet.util.group(title);
-                OwOpet.util.debug("Func status", "begin");
+                OwO.util.group(title);
+                OwO.util.debug("Func status", "begin");
                 
                 try {
                     result = func.apply(context, arguments);
                 } catch (e) {
-                    OwOpet.util.error(e.name, e.message + "\n" + e.stack);
-                    OwOpet.util.warn("Func status", "error!");
+                    OwO.util.error(e.name, e.message + "\n" + e.stack);
+                    OwO.util.warn("Func status", "error!");
                 } finally {
-                    OwOpet.util.debug("Func status", "fin");
-                    OwOpet.util.groupEnd();
+                    OwO.util.debug("Func status", "fin");
+                    OwO.util.groupEnd();
                 }
                 
                 return result;
@@ -260,20 +269,20 @@ OwOpet.init = function () {
         window.requestAnimationFrame = requestAnimationFrame; 
         window.cancelAnimationFrame = cancelAnimationFrame;
     }());
-    OwOpet.util.requestAnimationFrame = function (func) {
+    OwO.util.requestAnimationFrame = function (func) {
         return window.requestAnimationFrame(func);
     };
-    OwOpet.util.cancelAnimationFrame = function (func) {
+    OwO.util.cancelAnimationFrame = function (func) {
         return window.cancelAnimationFrame(func);
     };
     
     /** 加载图片 */
-    OwOpet.util.loadImage = function (src, callback) {
+    OwO.util.loadImage = function (src, callback) {
         return function () {
             var image = new Image();
             image.src = src;
             image.onerror = function() {
-                OwOpet.util.warn("Load image failed", "src = " + OwOpet.config.image);
+                OwO.util.warn("Load image failed", "src = " + OwO.config.image);
                 callback();
             }
             if (image.complete) callback();
@@ -282,263 +291,265 @@ OwOpet.init = function () {
     };
     
     /** 光标进入 */
-    OwOpet.util.addMouseEnterListen = function (el, func) {
+    OwO.util.addMouseEnterListen = function (el, func) {
         if (el.onmouseenter === null) el.onmouseenter = func;
         else el.onmouseover = func;
     } 
     /** 光标离开 */
-    OwOpet.util.addMouseLeaveListen = function (el, func) {
+    OwO.util.addMouseLeaveListen = function (el, func) {
         if (el.onmouseleave === null) el.onmouseleave = func;
         else el.onmouseout = func;
-    } 
+    }
+    /** 共享变量 */
+    OwO.util.share = {};
 }());
-OwOpet.util.info("Init", "Base utilities is ready.");
+OwO.util.info("Init", "Base utilities is ready.");
 
 
-/** OwOpet 主体模块 */
+/** OwO 主体模块 */
 (function () {
-    var config = OwOpet.config;
+    var config = OwO.config;
     
-    var pet;
+    var owo;
     /** 召唤 */
-    OwOpet.call = OwOpet.util.loadImage(config.image, function () {
-        if (pet)
+    OwO.call = OwO.util.loadImage(config.image, function () {
+        if (owo)
         {
-            OwOpet.util.warn("IllegalState", "Already called.");
+            OwO.util.warn("IllegalState", "Already called.");
             return;
         }
-        pet = {};
+        owo = {};
         
-        var petImg = document.createElement("img");
-        petImg.draggable = false;
-        petImg.src = config.image;
+        var owoImg = document.createElement("img");
+        owoImg.draggable = false;
+        owoImg.src = config.image;
         
         var focus;
         //是否有焦点
-        pet.isFocus = function () { return focus; };
+        owo.isFocus = function () { return focus; };
         
         //设置纹理
-        pet.setTexture = function (texture) {
-            petImg.src = texture;
+        owo.setTexture = function (texture) {
+            owoImg.src = texture;
         };
         
-        var petDiv = document.createElement("div");
-        petDiv.appendChild(petImg);
-        petDiv.style.position = config.position;
-        petDiv.style.zIndex = config.zIndex;
+        var owoDiv = document.createElement("div");
+        owoDiv.appendChild(owoImg);
+        owoDiv.style.position = config.position;
+        owoDiv.style.zIndex = config.zIndex;
         
         var showed;
         //显示
-        pet.show = function () {
+        owo.show = function () {
             if (showed)
             {
-                OwOpet.util.warn("IllegalState", "Already showed.");
+                OwO.util.warn("IllegalState", "Already showed.");
                 return;
             }
             
             focus = false;
-            OwOpet.anim.play();
-            config.parent.appendChild(petDiv);
+            OwO.anim.play();
+            config.parent.appendChild(owoDiv);
             showed = true;
         };
-        pet.show();
+        owo.show();
+        OwO.util.share.width = owoDiv.clientWidth;
+        OwO.util.share.height =  owoDiv.clientHeight
         
         //隐藏
-        pet.hide = function () {
+        owo.hide = function () {
             if (!showed)
             {
-                OwOpet.util.warn("IllegalState", "Already hided.");
+                OwO.util.warn("IllegalState", "Already hided.");
                 return;
             }
             
-            OwOpet.anim.stop();
-            petDiv.remove();
+            OwO.anim.stop();
+            owoDiv.remove();
             showed = false;
             
-            OwOpet.menu.hide();
+            OwO.menu.hide();
         };
         
         
         var coord = [];
         //移动
-        pet.move = function(offset) {
+        owo.move = function(offset) {
             coord[2] += (coord[2] * offset[2] / 100);
             if (coord[2] < 0) coord[2] = 0; 
             coord[0] += offset[0] * coord[2];
             coord[1] += offset[1] * coord[2];
-            petDiv.style.left = coord[0] + "px";
-            petDiv.style.top = coord[1] + "px";
-            petDiv.style.transform = "scale(" + coord[2] + ", " + coord[2] + ")";
+            owoDiv.style.left = coord[0] + "px";
+            owoDiv.style.top = coord[1] + "px";
+            owoDiv.style.transform = "scale(" + coord[2] + ", " + coord[2] + ")";
             
-            if (OwOpet.menu.config.strictFollow) OwOpet.menu.follow(
-                coord[0] + 0.5 * petDiv.clientWidth,
-                coord[1] + (config.axis[1] > 0.5 ? -0.1 : 1.1) * petDiv.clientHeight
-            );
+            OwO.menu.config.strictFollow && OwO.menu.follow(coord[0], coord[1]);
         }
         
         //归位
-        pet.resize = function () {
+        owo.resize = function () {
             if (!showed)
             {
-                OwOpet.util.warn("IllegalState", "Can not resized when hided.");
+                OwO.util.warn("IllegalState", "Can not resized when hided.");
                 return;
             }
             coord[0] = config.coord[0] * config.parent.clientWidth;
             coord[1] = config.coord[1] * config.parent.clientHeight;
-            coord[0] -= config.axis[0] * petDiv.clientWidth;
-            coord[1] -= config.axis[1] * petDiv.clientHeight;
-            petDiv.style.left = coord[0] + "px";
-            petDiv.style.top = coord[1] + "px";
+            coord[0] -= config.axis[0] * owoDiv.clientWidth;
+            coord[1] -= config.axis[1] * owoDiv.clientHeight;
+            owoDiv.style.left = coord[0] + "px";
+            owoDiv.style.top = coord[1] + "px";
             coord[2] = config.coord[2];
-            petDiv.style.transform = undefined;
+            owoDiv.style.transform = undefined;
             
-            OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.1 : 1.1) * petDiv.clientHeight);
+            OwO.menu.follow(coord[0], coord[1]);
         };
-        OwOpet.menu.init();
-        pet.resize();
+        OwO.menu.init();
+        owo.resize();
         
         //配置光标样式
         if (config.cursor == "simple") config.cursor = "http://os.zheng0716.com/static/image/OwO_simple.ico";
         else if (config.cursor == "moe") config.cursor = "http://os.zheng0716.com/static/image/OwO_moe.ico";
-        petDiv.style.cursor = 'url("' + config.cursor + '"), url("http://os.zheng0716.com/static/image/OwO_simple.ico"), auto';
-        petDiv.title = config.title;
+        owoDiv.style.cursor = 'url("' + config.cursor + '"), url("http://os.zheng0716.com/static/image/OwO_simple.ico"), auto';
+        owoDiv.title = config.title;
         
         //鼠标进入
-        OwOpet.util.addMouseEnterListen(petDiv, function (e) {
+        OwO.util.addMouseEnterListen(owoDiv, function (e) {
             focus = true;
-            OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.1 : 1.1) * petDiv.clientHeight);
-            OwOpet.menu.show();
+            OwO.menu.follow(coord[0], coord[1]);
+            OwO.menu.show();
         });
         var pressed = false;
         var offset;
         var percent;
         //鼠标按下
-        petDiv.onmousedown = function (e) {
-            pressed = config.draggable && true;
+        owoDiv.onmousedown = function (e) {
+            pressed = true;
             offset = [e.pageX - coord[0], e.pageY - coord[1]]
             if (config.onClick) {
-                var perX = (e.layerX || e.offsetX) / petDiv.clientWidth;
-                var perY = (e.layerY || e.offsetY) / petDiv.clientHeight;
+                var perX = (e.layerX || e.offsetX) / owoDiv.clientWidth;
+                var perY = (e.layerY || e.offsetY) / owoDiv.clientHeight;
                 percent = (config.onTouch && config.onTouch(perX, perY)) ? undefined : [perX, perY];
             }
         };
         var moved = false;
         //鼠标移动
-        petDiv.onmousemove = function (e) {
+        owoDiv.onmousemove = function (e) {
             if (!pressed) return;
             moved = true;
             
-            coord[0] = e.pageX - offset[0];
-            coord[1] = e.pageY - offset[1];
-            petDiv.style.left = coord[0] + "px";
-            petDiv.style.top = coord[1] + "px";
+            if (config.draggableX) {
+                coord[0] = e.pageX - offset[0];
+                owoDiv.style.left = coord[0] + "px";
+            }
+            if (config.draggableY) {
+                coord[1] = e.pageY - offset[1];
+                owoDiv.style.top = coord[1] + "px";
+            }
             
-            if (OwOpet.menu.config.strictFollow) OwOpet.menu.follow(
-                coord[0] + 0.5 * petDiv.clientWidth,
-                coord[1] + (config.axis[1] > 0.5 ? -0.1 : 1.1) * petDiv.clientHeight
-            );
+            OwO.menu.config.strictFollow && OwO.menu.follow(coord[0], coord[1]);
         };
         //鼠标抬起
-        petDiv.onmouseup = function (e) {
+        owoDiv.onmouseup = function (e) {
             pressed = false;
             
             if (moved)
             {
                 moved = false;
-                OwOpet.menu.follow(coord[0] + 0.5 * petDiv.clientWidth, coord[1] + (config.axis[1] > 0.5 ? -0.1 : 1.1) * petDiv.clientHeight);
+                OwO.menu.follow(coord[0], coord[1]);
                 return;
             }
             if (config.onClick) {
-                var perX = (e.layerX || e.offsetX) / petDiv.clientWidth;
-                var perY = (e.layerY || e.offsetY) / petDiv.clientHeight;
+                var perX = (e.layerX || e.offsetX) / owoDiv.clientWidth;
+                var perY = (e.layerY || e.offsetY) / owoDiv.clientHeight;
                 if (percent && percent[0] == perX && percent[1] == perY) config.onClick(perX, perY);
                 percent = undefined;
             }
         };
         //鼠标离开
-        OwOpet.util.addMouseLeaveListen(petDiv, function (e) {
+        OwO.util.addMouseLeaveListen(owoDiv, function (e) {
             focus = false;
             pressed = false;
             
-            if (OwOpet.menu.config.autoHide) OwOpet.menu.hide();
-            else OwOpet.util.log("Lose focus", "Menu doesn't hide, config is always show");
+            if (OwO.menu.config.autoHide) OwO.menu.hide();
+            else OwO.util.log("Lose focus", "Menu doesn't hide, config is always show");
         });
     });
     
     //保护性装饰器
     function protect(func) {
         return function () {
-            if (!pet)
+            if (!owo)
             {
-                OwOpet.util.warn("IllegalState", "Not called yet.");
+                OwO.util.warn("IllegalState", "Not called yet.");
                 return;
             }
             
-            return func.apply(OwOpet, arguments);
+            return func.apply(OwO, arguments);
         };
     }
     
     /** 显示 */
-    OwOpet.show = protect(function () {
-        return pet.show();
+    OwO.show = protect(function () {
+        return owo.show();
     });
     
     /** 隐藏 */
-    OwOpet.hide = protect(function () {
-        return pet.hide();
+    OwO.hide = protect(function () {
+        return owo.hide();
     });
     
     /** 归位 */
-    OwOpet.resize = protect(function () {
-        return pet.resize();
+    OwO.resize = protect(function () {
+        return owo.resize();
     });
     
     /** 释放 */
-    OwOpet.free = protect(function () {
-        OwOpet.hide();
-        pet = undefined;
+    OwO.free = protect(function () {
+        OwO.hide();
+        owo = undefined;
         
-        OwOpet.menu.release();
+        OwO.menu.release();
     });
     
     //监视
-    OwOpet.util.monitor(OwOpet, "OwOpet");
+    OwO.util.monitor(OwO, "OwO");
     
     /* 留给anim接口 */
     
     /** 是否获得焦点 */
-    OwOpet.anim.isFocus = protect(function () {
-        return pet.isFocus();
+    OwO.anim.isFocus = protect(function () {
+        return owo.isFocus();
     })
     
     /** 设置纹理 */
-    OwOpet.anim.setTexture = protect(function (texture) {
-        return pet.setTexture(texture);
+    OwO.anim.setTexture = protect(function (texture) {
+        return owo.setTexture(texture);
     })
     
     /** 移动位置 */
-    OwOpet.anim.move = protect(function (offset) {
-        return pet.move(offset);
+    OwO.anim.move = protect(function (offset) {
+        return owo.move(offset);
     })
 }());
-OwOpet.util.info("Init", "Main body is ready.");
+OwO.util.info("Init", "Main body is ready.");
 
 
-/** OwOpet.anim 动画模块 */
+/** OwO.anim 动画模块 */
 (function () {
-    var config = OwOpet.anim.config;
+    var config = OwO.anim.config;
     
     var anim;
     //播放
-    OwOpet.anim.play = function (param) {
+    OwO.anim.play = function (param) {
         if (anim)
         {
-            OwOpet.util.warn("IllegalState", "Animation is playing.");
+            OwO.util.warn("IllegalState", "Animation is playing.");
             return;
         }
         if (config.queue == false)
         {
-            OwOpet.util.warn("IllegalArgument", "Empty animation queue.");
+            OwO.util.warn("IllegalArgument", "Empty animation queue.");
             return;
         }
         anim = {};
@@ -583,39 +594,39 @@ OwOpet.util.info("Init", "Main body is ready.");
             var repeat = action.repeat || 0;
             function playFram() {
                 if (delay-- > 0) {
-                    animationHandle = OwOpet.util.requestAnimationFrame(playFram);
+                    animationHandle = OwO.util.requestAnimationFrame(playFram);
                     return;
                 }
                 delay = action.delay;
                 
-                (OwOpet.anim.isFocus() && !config.move1Focus) || action.offset && OwOpet.anim.move(action.offset);
+                (OwO.anim.isFocus() && !config.move1Focus) || action.offset && OwO.anim.move(action.offset);
                 if (action.frames && repeat >= 0) {
-                    if (!OwOpet.anim.isFocus()) {
+                    if (!OwO.anim.isFocus()) {
                         if (++index >= action.frames.length) {
                             repeat--;
                             index = 0;
                         }
                         
-                        action.frames[index] != undefined && OwOpet.anim.setTexture(action.frames[index]);
+                        action.frames[index] != undefined && OwO.anim.setTexture(action.frames[index]);
                     }
                     else if (config.play1Focus) {
                         if (++index >= action.frames.length) index = 0;
                         
-                        action.frames[index] != undefined && OwOpet.anim.setTexture(action.frames[index]);
+                        action.frames[index] != undefined && OwO.anim.setTexture(action.frames[index]);
                     }
                     
-                    animationHandle = OwOpet.util.requestAnimationFrame(playFram);
+                    animationHandle = OwO.util.requestAnimationFrame(playFram);
                     return;
                 }
                 
                 if (config.resize1Finish) {
-                    OwOpet.anim.setTexture(OwOpet.config.image);
-                    OwOpet.resize();
+                    OwO.anim.setTexture(OwO.config.image);
+                    OwO.resize();
                 }
                 animationHandle = setTimeout(playAction, action.wait || 0);
                 action.onFinish && action.onFinish();
             }
-            animationHandle = OwOpet.util.requestAnimationFrame(playFram);
+            animationHandle = OwO.util.requestAnimationFrame(playFram);
         }
         playAction();
     };
@@ -625,42 +636,42 @@ OwOpet.util.info("Init", "Main body is ready.");
         return function () {
             if (!anim)
             {
-                OwOpet.util.warn("IllegalState", "Animation not playing.");
+                OwO.util.warn("IllegalState", "Animation not playing.");
                 return;
             }
             
-            return func.apply(OwOpet.anim, arguments);
+            return func.apply(OwO.anim, arguments);
         };
     }
     
     /** 停止 */
-    OwOpet.anim.stop = protect(function () {
+    OwO.anim.stop = protect(function () {
         return anim.stop();
     });
     
     //监视
-    //OwOpet.util.monitor(OwOpet.anim, "OwOpet.anim");
+    //OwO.util.monitor(OwO.anim, "OwO.anim");
 }());
-OwOpet.util.info("Init", "Animation module is ready.");
+OwO.util.info("Init", "Animation module is ready.");
 
 
-/** OwOpet.menu 菜单模块 */
+/** OwO.menu 菜单模块 */
 (function () {
-    var config = OwOpet.menu.config;
+    var config = OwO.menu.config;
     
     var menu;
     /** 初始化 */
-    OwOpet.menu.init = function () {
+    OwO.menu.init = function () {
         if (menu)
         {
-            OwOpet.util.warn("IllegalState", "Menu has already init.");
+            OwO.util.warn("IllegalState", "Menu has already init.");
             return;
         }
         menu = {};
         
         var menuDiv = document.createElement("div");
-        menuDiv.style.position = OwOpet.config.position;
-        menuDiv.style.zIndex = 1 + OwOpet.config.zIndex;
+        menuDiv.style.position = OwO.config.position;
+        menuDiv.style.zIndex = 1 + OwO.config.zIndex;
         menuDiv.className = config.class; //允许用户自定义的class
         var menuPanel = document.createElement("div");
         menuDiv.appendChild(menuPanel);
@@ -671,16 +682,17 @@ OwOpet.util.info("Init", "Animation module is ready.");
             button.style.paddingRight = "6px";
             button.style.margin = "6px";
             button.style.cursor = "pointer";
+            button.style.color = config.color;
             button.style.backgroundColor = config.bgColor;
             button.style.boxShadow = "0px 0px 8px " + config.shadowColor;
             button.style.borderRadius = "6px";
             button.style.border = config.bgColor + " 3px solid";
             button.style.cssFloat = cssFloat || "right";
             
-            OwOpet.util.addMouseEnterListen(button, function (e) {
+            OwO.util.addMouseEnterListen(button, function (e) {
                 button.style.border = config.focusColor + " 3px solid";
             });
-            OwOpet.util.addMouseLeaveListen(button, function (e) {
+            OwO.util.addMouseLeaveListen(button, function (e) {
                 button.style.border = config.bgColor + " 3px solid";
             });
             
@@ -703,7 +715,7 @@ OwOpet.util.info("Init", "Animation module is ready.");
         menu.add = function (button) {
             menuPanel.appendChild(button);
         };
-        menu.add(OwOpet.chat.getPanel());
+        menu.add(OwO.chat.getPanel());
         menu.add(document.createElement("br"));
         
         //快速添加文字按钮
@@ -717,9 +729,9 @@ OwOpet.util.info("Init", "Animation module is ready.");
         menu.quickAdd("OwO", function(e) {
             var infoConf = config.infoPanel;
             var keyMap = infoConf.keyMap;
-            var info = OwOpet.info;
+            var info = OwO.info;
             
-            //宠物信息
+            //萌物信息
             var infoDiv = document.createElement("div");
             infoDiv.innerHTML = "<h3>" + infoConf.title + "</h3>"
                 + "<hr />"
@@ -727,9 +739,10 @@ OwOpet.util.info("Init", "Animation module is ready.");
                 + "<p>" + keyMap.gender + ": " + info.gender + "</p>"
                 + "<p>" + keyMap.birth + ": " + info.birth + "</p>"
                 + "<p>" + keyMap.master + ": " + info.master + "</p>"
-                + "<p>" + keyMap.home + ": <a href=" + info.home + ' target="_blank">' + info.home + "</a></p>";
+                + "<p>" + keyMap.home + ": <a href=" + info.home.link + ' target="_blank">' + info.home.name + "</a></p>";
             infoDiv.style.padding = "6px";
             infoDiv.style.marginRight = "12px";
+            infoDiv.style.color = config.color;
             infoDiv.style.backgroundColor = config.bgColor;
             infoDiv.style.boxShadow = "0px 0px 8px " + config.shadowColor;
             infoDiv.style.borderRadius = "6px";
@@ -741,21 +754,21 @@ OwOpet.util.info("Init", "Animation module is ready.");
             //GitHub
             var ghButton = document.createElement("p");
             ghButton.textContent = keyMap.github;
-            ghButton.onclick = function (e) { window.open("https://github.com/zhengxiaoyao0716/OwOpet"); };
+            ghButton.onclick = function (e) { window.open("https://github.com/zhengxiaoyao0716/OwO"); };
             menu.addDefaultButtonStyle(ghButton, "left");
             sideDiv.appendChild(ghButton);
             sideDiv.appendChild(document.createElement("br"));
             //领养
             var adoptButton = document.createElement("p");
             adoptButton.textContent = keyMap.adopt;
-            adoptButton.onclick = function (e) { window.open("http://pet.zheng0716.com/adopt"); };
+            adoptButton.onclick = function (e) { window.open("http://owo.zheng0716.com/adopt"); };
             menu.addDefaultButtonStyle(adoptButton, "left");
             sideDiv.appendChild(adoptButton);
             sideDiv.appendChild(document.createElement("br"));
             //返回
             var backButton = document.createElement("p");
             backButton.textContent = keyMap.back;
-            backButton.onclick = function (e) { OwOpet.menu.changePanel(menuPanel); };
+            backButton.onclick = function (e) { OwO.menu.changePanel(menuPanel); };
             menu.addDefaultButtonStyle(backButton, "left");
             sideDiv.appendChild(backButton);
             sideDiv.appendChild(document.createElement("br"));
@@ -764,16 +777,19 @@ OwOpet.util.info("Init", "Animation module is ready.");
             infoPanel.appendChild(infoDiv);
             infoPanel.appendChild(sideDiv);
             infoPanel.className = infoConf.class;
-            OwOpet.menu.changePanel(infoPanel);
+            OwO.menu.changePanel(infoPanel);
         });
         
         var coord;
         //跟随
-        menu.follow = function (coordX, coordY) {                
-            rect = OwOpet.config.parent.getBoundingClientRect();
+        menu.follow = function (coordX, coordY) {
+            rect = OwO.config.parent.getBoundingClientRect();
             coord = [coordX + rect.left, coordY + rect.top];
             
-            if (!config.autoHide) OwOpet.menu.show();
+            coord[0] += config.coord[0] * OwO.util.share.width,
+            coord[1] += config.coord[1] * OwO.util.share.height
+            
+            if (!config.autoHide) OwO.menu.show();
             if (showed)
             {
                 menuDiv.remove();
@@ -788,26 +804,24 @@ OwOpet.util.info("Init", "Animation module is ready.");
         menu.show = function () {
             if (showed)
             {
-                OwOpet.util.warn("IllegalState", "Menu has already showed.");
+                OwO.util.warn("IllegalState", "Menu has already showed.");
                 return;
             }
             
             document.body.appendChild(menuDiv);
             
-            if (coord[0] < 0.5 * menuDiv.clientWidth)
+            var _coord = [coord[0] - config.axis[0] * menuDiv.clientWidth, coord[1] - config.axis[1] * menuDiv.clientHeight];
+            if (_coord[0] < 0)
                 menuDiv.style.left = "0px";
-            else if (coord[0] > document.documentElement.clientWidth - 0.5 * menuDiv.clientWidth)
+            else if (_coord[0] > document.documentElement.clientWidth - menuDiv.clientWidth)
                 menuDiv.style.left = document.documentElement.clientWidth - menuDiv.clientWidth + "px";
             else
-                menuDiv.style.left = coord[0] - 0.5 * menuDiv.clientWidth + "px";
-            if (OwOpet.config.axis[1] > 0.5)
-                menuDiv.style.top = coord[1] - menuDiv.clientHeight + "px";
-            else
-                menuDiv.style.top = coord[1] + "px";
+                menuDiv.style.left = _coord[0] + "px";
+            menuDiv.style.top = _coord[1] + "px";
             
             showed = true;
             
-            OwOpet.util.cancelAnimationFrame(tranGrad);
+            OwO.util.cancelAnimationFrame(tranGrad);
             (function show() {
                 if (!showed) return;
                 
@@ -815,7 +829,7 @@ OwOpet.util.info("Init", "Animation module is ready.");
                 menuDiv.style.filter = 'alpha(opacity='+alpha+')';
                 menuDiv.style.opacity = alpha / 100;
                 
-                if (alpha < 100)  tranGrad = OwOpet.util.requestAnimationFrame(show);
+                if (alpha < 100)  tranGrad = OwO.util.requestAnimationFrame(show);
             }());
         };
         
@@ -823,13 +837,13 @@ OwOpet.util.info("Init", "Animation module is ready.");
         menu.hide = function () {
             if (!showed)
             {
-                OwOpet.util.warn("IllegalState", "Menu has already hided.");
+                OwO.util.warn("IllegalState", "Menu has already hided.");
                 return;
             }
             
             showed = false;
             
-            OwOpet.util.cancelAnimationFrame(tranGrad);
+            OwO.util.cancelAnimationFrame(tranGrad);
             (function hide() {
                 if (showed) return;
                 
@@ -842,32 +856,32 @@ OwOpet.util.info("Init", "Animation module is ready.");
                     menuDiv.remove();
                     menuDiv.appendChild(menuPanel);
                 }
-                else OwOpet.util.requestAnimationFrame(hide);
+                else OwO.util.requestAnimationFrame(hide);
             }());
         };
         
         //鼠标进入
-        OwOpet.util.addMouseEnterListen(menuDiv, function (e) {
-            OwOpet.menu.show();
+        OwO.util.addMouseEnterListen(menuDiv, function (e) {
+            OwO.menu.show();
         });
         //鼠标点击
         menuDiv.onclick = config.onclick;
         //鼠标离开
-        OwOpet.util.addMouseLeaveListen(menuDiv, function (e) {
-            if (config.autoHide) OwOpet.menu.hide();
-            else OwOpet.util.log("Lose focus", "Menu doesn't hide, config is always show");
+        OwO.util.addMouseLeaveListen(menuDiv, function (e) {
+            if (config.autoHide) OwO.menu.hide();
+            else OwO.util.log("Lose focus", "Menu doesn't hide, config is always show");
         });
         
         //默认添加的按钮组
         (function () {
-            //隐藏宠物
-            if (config.defaultButtons.hideButton.showed) OwOpet.menu.quickAdd(
+            //隐藏萌物
+            if (config.defaultButtons.hideButton.showed) OwO.menu.quickAdd(
                 config.defaultButtons.hideButton.text,
                 function (e) {
                     var byePanel = document.createElement("div");
                     byePanel.innerHTML = config.defaultButtons.hideButton.bye;
                     menu.changePanel(menu.addDefaultButtonStyle(byePanel));
-                    OwOpet.hide();
+                    OwO.hide();
                     
                     setTimeout(function () {
                         showed = false;
@@ -884,15 +898,15 @@ OwOpet.util.info("Init", "Animation module is ready.");
                         showButton.style.bottom = "0px";
                         showButton.style.margin = "6px";
                         showButton.onclick = function (e) {
-                            OwOpet.show();
+                            OwO.show();
                             showButton.remove();
                             
                             var hiPanel = document.createElement("div");
                             hiPanel.innerHTML = config.defaultButtons.hideButton.showButton.hello;
                             menu.changePanel(menu.addDefaultButtonStyle(hiPanel));
-                            OwOpet.menu.show();
+                            OwO.menu.show();
                             setTimeout(function () {
-                                if (config.autoHide) OwOpet.menu.hide();
+                                if (config.autoHide) OwO.menu.hide();
                                 else menu.changePanel(menuPanel); 
                             }, 1000);
                         }
@@ -901,17 +915,17 @@ OwOpet.util.info("Init", "Animation module is ready.");
                 }
             );
             //返回顶部
-            if (config.defaultButtons.topButton.showed) OwOpet.menu.quickAdd(
+            if (config.defaultButtons.topButton.showed) OwO.menu.quickAdd(
                 config.defaultButtons.topButton.text,
                 function (e) {
                     scrollTo(0, 0);
                 }
             );
             //跳转首页
-            if (config.defaultButtons.homeButton.showed) OwOpet.menu.quickAdd(
+            if (config.defaultButtons.homeButton.showed) OwO.menu.quickAdd(
                 config.defaultButtons.homeButton.text,
                 function (e) {
-                    window.location.href = OwOpet.info.home;
+                    window.location.href = OwO.info.home.link;
                 }
             );
         }());
@@ -922,74 +936,73 @@ OwOpet.util.info("Init", "Animation module is ready.");
         return function () {
             if (!menu)
             {
-                OwOpet.util.warn("IllegalState", "Menu has not inited yet.");
+                OwO.util.warn("IllegalState", "Menu has not inited yet.");
                 return;
             }
             
-            return func.apply(OwOpet.menu, arguments);
+            return func.apply(OwO.menu, arguments);
         };
     }
     
     /** 为按钮添加默认样式 */
-    OwOpet.menu.addDefaultButtonStyle = protect(function (button, cssFloat) {
+    OwO.menu.addDefaultButtonStyle = protect(function (button, cssFloat) {
         return menu.addDefaultButtonStyle(button, cssFloat);
     });
     
     /** 切换整个按钮面板 */
-    OwOpet.menu.changePanel = protect(function (panel) {
+    OwO.menu.changePanel = protect(function (panel) {
         return menu.changePanel(panel);
     });
     
     /** 添加新的按纽 */
-    OwOpet.menu.add = protect(function (button) {
+    OwO.menu.add = protect(function (button) {
         return menu.add(button);
     });
     
     /** 快速添加文字按钮 */
-    OwOpet.menu.quickAdd = protect(function (text, func, cssFloat) {
+    OwO.menu.quickAdd = protect(function (text, func, cssFloat) {
         return menu.quickAdd(text, func, cssFloat);
     });
     
     /** 显示 */
-    OwOpet.menu.show = protect(function () {
+    OwO.menu.show = protect(function () {
         return menu.show();
     });
     
     /** 隐藏 */
-    OwOpet.menu.hide = protect(function () {
+    OwO.menu.hide = protect(function () {
         return menu.hide();
     });
     
     /** 跟随 */
-    OwOpet.menu.follow = protect(function (coordX, coordY) {
+    OwO.menu.follow = protect(function (coordX, coordY) {
         return menu.follow(coordX, coordY);
     });
     
     /** 释放 */
-    OwOpet.menu.release = protect(function () {
-        OwOpet.menu.hide();
+    OwO.menu.release = protect(function () {
+        OwO.menu.hide();
         menu = undefined;
     });
     
     //监视
-    OwOpet.util.monitor(OwOpet.menu, "OwOpet.menu");
+    OwO.util.monitor(OwO.menu, "OwO.menu");
 }());
-OwOpet.util.info("Init", "Menu module is ready.");
+OwO.util.info("Init", "Menu module is ready.");
 
 
-/** OwOpet.chat 聊天模块 */
+/** OwO.chat 聊天模块 */
 (function () {
-    var config = OwOpet.chat.config;
+    var config = OwO.chat.config;
     
-    OwOpet.chat.getPanel = function () {
+    OwO.chat.getPanel = function () {
         var panelDiv = document.createElement("div");
         panelDiv.style.maxWidth = config.maxWidth;
         panelDiv.style.padding = "6px";
-        panelDiv.style.backgroundColor = config.bgColor;
-        panelDiv.style.boxShadow = "0px 0px 8px " + config.shadowColor;
+        panelDiv.style.color = OwO.menu.config.color;
+        panelDiv.style.backgroundColor = OwO.menu.config.bgColor;
+        panelDiv.style.boxShadow = "0px 0px 8px " + OwO.menu.config.shadowColor;
         panelDiv.style.borderRadius = "6px";
-            
-        panelDiv.className = config.class;  //允许用户自定义的class
         
         panelDiv.innerHTML = config.defaultWords[0];
         
@@ -1004,18 +1017,18 @@ OwOpet.util.info("Init", "Menu module is ready.");
     window.addEventListener("resize", function () {
         clearTimeout(timeout);
         timeout = setTimeout(function () {
-            OwOpet.util.log("debounce", "resize();");
+            OwO.util.log("debounce", "resize();");
             
-            OwOpet.resize();
+            OwO.resize();
             timeout = undefined;
         }, 250);
     });
 }());
-OwOpet.util.info("Init", "Initialization complete.");
+OwO.util.info("Init", "Initialization complete.");
 
 
-OwOpet.init = function () {
-    OwOpet.util.warn("Init field", "Function 'init' has already been used so that it was been destroyed.")
+OwO.init = function () {
+    OwO.util.warn("Init field", "Function 'init' has already been used so that it was been destroyed.")
 };
-return OwOpet.call();
+return OwO.call();
 };
