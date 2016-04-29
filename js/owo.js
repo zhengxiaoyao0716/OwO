@@ -10,6 +10,8 @@
 
 /** 默认配置，请酌情修改 */
 var OwO = {
+    "template": "",     //模板js文件的url路径，只做标识用，表明继承关系。模板是指配置OwO的js文件，请在模板内先配置好这个参数
+    "locale": {},       //本地化，将默认项翻译成本地语言。这个项可供各模板自行扩展，目前内置了OwO.locale.chinese();方法
     "info": {
         "name": "OwO",
         "gender": "--",
@@ -19,8 +21,7 @@ var OwO = {
     },
     "config": {
         "image": "",            //无动作时显示的图片
-        "parent": document.documentElement,     //在页面有DTD的情况下，document.body 的宽高不准确
-        "position": "fixed",
+        "parent": undefined,    //指定父视图，undefined表示相对整个窗口，而不是页面，所以不随页面滚动（fixed）
         "zIndex": 99,
         "coord": [1, 1, 1],     //[(0, 1), (0, 1), (0, +oo)]  coord[2]是z轴上的坐标，实际上相当于缩放，而不是图层。0为最小不可见，1为原大小
         "axis": [1, 1],         //[(0, 1), (0, 1)] 轴心位置。通过坐标coord、轴心axis两个参数就能很精确的定位了
@@ -59,25 +60,25 @@ var OwO = {
              */
             "queue": [],
             "play1Focus": true,    //当萌物获得光标焦点时，是否继续播放动画（不包括移动）
-            "move1Focus": false,    //当萌物获得光标焦点时，是否允许萌物移动的动画效果
+            "move1Focus": true,    //当萌物获得光标焦点时，是否允许萌物移动的动画效果
             "resize1Finish": true   //播放结束时是否回到初始状态
         }
     },
     "menu": {
         "config": {
-            "class": "",            //在class之后的属性不会被用户自定义的css覆盖
+            "class": "",
+            "fontSize": "medium",
             "color": "black",
             "bgColor": "white",
             "shadowColor": "#888",
             "focusColor": "#aaa",
             "coord": [0, 0.5],      //相对萌物主体0代表萌物的最左(上)坐标处，1代表最右（下）坐标处
             "axis": [1, 0.5],       //轴心位置，相对菜单主体，[0.5, 0.5]为中心
-            "strictFollow": false,  //是否严格跟随，即与萌物一起移动
-            "autoHide": true,       //是否自动隐藏
+            "strictFollow": true,  //是否严格跟随，即与萌物一起移动
+            "alwaysShow": true,    //是否一直显示
             "infoPanel": {
                 "title": "OwO Information",
                 "keyMap": { "name": "Name", "gender": "Gender", "birth": "Birth", "master": "Master", "home": "Home", "github": "GitHub", "adopt": "Adopt", "back": "Back" },   //信息面板上的键名
-                "class": ""
             },
             "defaultButtons": {
                 "hideButton": {
@@ -93,15 +94,15 @@ var OwO = {
     "chat": {
         "config": {
             "maxWidth": "300px",
-            "defaultWords": ["Best wish to you from the two dimensional world."],
+            "defaultWords": ["Best wish to you from the two dimensional world."],   //默认显示的文本数组，文本可以是html
             "faces": {
                 /**
                  * 表情包, "faceName": "faceImage".
                  * e.g: "smile": "smile.png", "trick": "trick.png", "shy": "shy.png"
                  * 解析：表情是指一帧立绘图，当聊天输出内容时指定faceName，则萌物会切换到相应的图片，即变换表情
                  */
-            }
-            //todo 
+            },
+            "showTime": 0   //消息呈现时间，指每次刷新后，从弹出面板到自动隐藏的时间。但消息会一直保留直到下次刷新。0表示每次消息刷新后不自动显示
         }
     },
     "util": {
@@ -113,8 +114,7 @@ var OwO = {
             "error": true,
             "monitor": true
         }
-    },
-    "locale": {}    //本地化，将默认项翻译成本地语言
+    }
 };
 /* 本地化模块 */
 (function () {
@@ -124,7 +124,6 @@ var OwO = {
         OwO.menu.config.infoPanel = {
             "title": "萌物信息",
             "keyMap": { "name": "姓名", "gender": "性别", "birth": "生日", "master": "主人", "home": "居所", "github": "GitHub", "adopt": "领养", "back": "返回" },  //信息面板上的键名
-            "class": "" 
         };
         OwO.menu.config.defaultButtons = {
             "hideButton": {
@@ -323,6 +322,7 @@ OwO.util.info("Init", "Base utilities is ready.");
         var owoImg = document.createElement("img");
         owoImg.draggable = false;
         owoImg.src = config.image;
+        owoImg.style.display = "block";     //防止img在结尾补换行
         
         var focus;
         //是否有焦点
@@ -335,8 +335,17 @@ OwO.util.info("Init", "Base utilities is ready.");
         
         var owoDiv = document.createElement("div");
         owoDiv.appendChild(owoImg);
-        owoDiv.style.position = config.position;
         owoDiv.style.zIndex = config.zIndex;
+        
+        if (OwO.config.parent) {
+            OwO.util.share.parent = OwO.config.parent;
+            OwO.util.share.position = "fixed";
+        }
+        else {
+            OwO.util.share.parent = document.documentElement;
+            OwO.util.share.position = "absolute";
+        }
+        owoDiv.style.position = OwO.util.share.position;
         
         var showed;
         //显示
@@ -349,7 +358,7 @@ OwO.util.info("Init", "Base utilities is ready.");
             
             focus = false;
             OwO.anim.play();
-            config.parent.appendChild(owoDiv);
+            OwO.util.share.parent.appendChild(owoDiv);
             showed = true;
         };
         owo.show();
@@ -393,8 +402,10 @@ OwO.util.info("Init", "Base utilities is ready.");
                 OwO.util.warn("IllegalState", "Can not resized when hided.");
                 return;
             }
-            coord[0] = config.coord[0] * config.parent.clientWidth;
-            coord[1] = config.coord[1] * config.parent.clientHeight;
+            
+            var rect = OwO.util.share.parent.getBoundingClientRect();
+            coord[0] = rect.left + config.coord[0] * OwO.util.share.parent.clientWidth;
+            coord[1] = rect.top + config.coord[1] * OwO.util.share.parent.clientHeight;
             coord[0] -= config.axis[0] * owoDiv.clientWidth;
             coord[1] -= config.axis[1] * owoDiv.clientHeight;
             owoDiv.style.left = coord[0] + "px";
@@ -471,7 +482,7 @@ OwO.util.info("Init", "Base utilities is ready.");
             focus = false;
             pressed = false;
             
-            if (OwO.menu.config.autoHide) OwO.menu.hide();
+            if (!OwO.menu.config.alwaysShow) OwO.menu.hide();
             else OwO.util.log("Lose focus", "Menu doesn't hide, config is always show");
         });
     });
@@ -670,9 +681,10 @@ OwO.util.info("Init", "Animation module is ready.");
         menu = {};
         
         var menuDiv = document.createElement("div");
-        menuDiv.style.position = OwO.config.position;
-        menuDiv.style.zIndex = 1 + OwO.config.zIndex;
         menuDiv.className = config.class; //允许用户自定义的class
+        menuDiv.style.position = OwO.util.share.position;
+        menuDiv.style.zIndex = 1 + OwO.config.zIndex;
+        menuDiv.style.fontSize = config.fontSize;
         var menuPanel = document.createElement("div");
         menuDiv.appendChild(menuPanel);
         
@@ -762,6 +774,7 @@ OwO.util.info("Init", "Animation module is ready.");
             var adoptButton = document.createElement("p");
             adoptButton.textContent = keyMap.adopt;
             adoptButton.onclick = function (e) { window.open("http://owo.zheng0716.com/adopt"
+                    + "?template=" + OwO.template
                     + "?name=" + OwO.info.name
                     + "&home=" + encodeURIComponent(OwO.info.home.link)
                 );
@@ -780,20 +793,18 @@ OwO.util.info("Init", "Animation module is ready.");
             var infoPanel = document.createElement("div");
             infoPanel.appendChild(infoDiv);
             infoPanel.appendChild(sideDiv);
-            infoPanel.className = infoConf.class;
             OwO.menu.changePanel(infoPanel);
         });
         
         var coord;
         //跟随
         menu.follow = function (coordX, coordY) {
-            rect = OwO.config.parent.getBoundingClientRect();
-            coord = [coordX + rect.left, coordY + rect.top];
+            coord = [
+                coordX + config.coord[0] * OwO.util.share.width,
+                coordY + config.coord[1] * OwO.util.share.height
+            ];
             
-            coord[0] += config.coord[0] * OwO.util.share.width,
-            coord[1] += config.coord[1] * OwO.util.share.height
-            
-            if (!config.autoHide) OwO.menu.show();
+            if (config.alwaysShow) OwO.menu.show();
             if (showed)
             {
                 menuDiv.remove();
@@ -812,7 +823,7 @@ OwO.util.info("Init", "Animation module is ready.");
                 return;
             }
             
-            document.body.appendChild(menuDiv);
+            OwO.util.share.parent.appendChild(menuDiv);
             
             var _coord = [coord[0] - config.axis[0] * menuDiv.clientWidth, coord[1] - config.axis[1] * menuDiv.clientHeight];
             if (_coord[0] < 0)
@@ -872,7 +883,7 @@ OwO.util.info("Init", "Animation module is ready.");
         menuDiv.onclick = config.onclick;
         //鼠标离开
         OwO.util.addMouseLeaveListen(menuDiv, function (e) {
-            if (config.autoHide) OwO.menu.hide();
+            if (!config.alwaysShow) OwO.menu.hide();
             else OwO.util.log("Lose focus", "Menu doesn't hide, config is always show");
         });
         
@@ -897,7 +908,7 @@ OwO.util.info("Init", "Animation module is ready.");
                         var showButton = document.createElement("div");
                         showButton.textContent = config.defaultButtons.hideButton.showButton.text;
                         menu.addDefaultButtonStyle(showButton);
-                        showButton.style.position = "fixed";
+                        showButton.style.position = OwO.util.share.position;
                         showButton.style.right = "0px";
                         showButton.style.bottom = "0px";
                         showButton.style.margin = "6px";
@@ -910,11 +921,11 @@ OwO.util.info("Init", "Animation module is ready.");
                             menu.changePanel(menu.addDefaultButtonStyle(hiPanel));
                             OwO.menu.show();
                             setTimeout(function () {
-                                if (config.autoHide) OwO.menu.hide();
+                                if (!config.alwaysShow) OwO.menu.hide();
                                 else menu.changePanel(menuPanel); 
                             }, 1000);
                         }
-                        document.body.appendChild(showButton);
+                        OwO.util.share.parent.appendChild(showButton);
                     }, 1000);
                 }
             );

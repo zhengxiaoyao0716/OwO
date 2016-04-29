@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html id="owoRoom">
 <head>
     <meta charset="UTF-8" />
     <meta name="Keywords" content="萌物,萌宠,萌娘,挂件"/>
@@ -8,34 +8,8 @@
     <title>OwO萌娘 - 藤林杏</title>
 </head>
 <body>
-    <!-- 萌物挂件 -->
+    <div style="background: #c0f; width: 100%; height: 150px; margin-top: 150px; position: relative; color: white; font-size: 120px; text-align: center; font-family: arial,tahoma,'Microsoft Yahei','\5b8b\4f53',sans-serif; padding-bottom: 24px;">CLANNAD - 藤林杏</div>
     <script src="./js/owo.js"></script>
-    <div style="background: #a0f; width: 100%; height: 150px; margin-top: 150px; position: relative; color: white; font-size: 120px; text-align: center; font-family: arial,tahoma,'Microsoft Yahei','\5b8b\4f53',sans-serif; padding-bottom: 24px;">CLANNAD - 藤林杏</div>
-    <script>
-        OwO.locale.chinese();
-        
-        OwO.info = {
-            "name": "杏",
-            "gender": "Girl",
-            "birth": "2016/4/29",
-            "master": "她自己",
-            "home": {"name": "逍遥居", "link": "http://xiaoyao.zheng0716.com"}
-        };
-        
-        OwO.config.image = "./image/Kyou/10.png";
-        OwO.config.draggableY = false;
-        
-        OwO.menu.config.color = "#f0a";
-        OwO.menu.config.shadowColor = "#a0f";
-        OwO.menu.config.focusColor = "#a0f";
-        OwO.menu.config.defaultButtons.hideButton.bye = "再见咯~";
-        OwO.menu.config.defaultButtons.hideButton.showButton.text = "呼唤杏";
-        OwO.menu.config.defaultButtons.hideButton.showButton.hello = "是在叫我吗？";
-        
-        OwO.chat.config.maxWidth = "220px";
-        
-        OwO.chat.config.defaultWords = ["《CLANNAD》是日本游戏品牌Key继《Kanon》、《AIR》后发行的第三款恋爱冒险游戏，游戏于2004年4月28日发行PC初回限定版，并依此为原作改编或扩充跨媒体制作的作品。"];
-        
-        setTimeout(OwO.init, 100);
-    </script>
+    <script src="./js/template/kyou.js"></script>
+    <script>setTimeout(OwO.init, 100);</script>
 </body>
