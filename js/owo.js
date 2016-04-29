@@ -339,11 +339,11 @@ OwO.util.info("Init", "Base utilities is ready.");
         
         if (OwO.config.parent) {
             OwO.util.share.parent = OwO.config.parent;
-            OwO.util.share.position = "fixed";
+            OwO.util.share.position = "absolute";
         }
         else {
             OwO.util.share.parent = document.documentElement;
-            OwO.util.share.position = "absolute";
+            OwO.util.share.position = "fixed";
         }
         owoDiv.style.position = OwO.util.share.position;
         
@@ -403,9 +403,17 @@ OwO.util.info("Init", "Base utilities is ready.");
                 return;
             }
             
-            var rect = OwO.util.share.parent.getBoundingClientRect();
-            coord[0] = rect.left + config.coord[0] * OwO.util.share.parent.clientWidth;
-            coord[1] = rect.top + config.coord[1] * OwO.util.share.parent.clientHeight;
+            coord[0] = config.coord[0] * OwO.util.share.parent.clientWidth;
+            coord[1] = config.coord[1] * OwO.util.share.parent.clientHeight;
+            if (OwO.util.share.parent.style.position != "relative"
+                && OwO.util.share.parent.style.position != "absolute"
+                && OwO.util.share.parent.style.position != "fixed"
+                && OwO.util.share.parent.style.position != "inherit"
+            ) {
+                var rect = OwO.util.share.parent.getBoundingClientRect();
+                coord[0] += rect.left;
+                coord[1] += rect.top;
+            }
             coord[0] -= config.axis[0] * owoDiv.clientWidth;
             coord[1] -= config.axis[1] * owoDiv.clientHeight;
             owoDiv.style.left = coord[0] + "px";
