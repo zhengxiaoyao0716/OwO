@@ -15,7 +15,7 @@ var OwO = {
         "gender": "--",
         "birth": "--",
         "master": "--",
-        "home": {"name": "OwO收养所", "link": "http://owo.zheng0716.com"}
+        "home": {"name": "OwO乐园", "link": "http://owo.zheng0716.com"}
     },
     "config": {
         "image": "",            //无动作时显示的图片
@@ -120,9 +120,9 @@ var OwO = {
 (function () {
     //配置成中文
     OwO.locale.chinese = function () {
-        OwO.config.title = "我是来自二次元的萌宠OwO~";
+        OwO.config.title = "我是来自二次元的OwO~";
         OwO.menu.config.infoPanel = {
-            "title": "萌宠信息",
+            "title": "萌物信息",
             "keyMap": { "name": "姓名", "gender": "性别", "birth": "生日", "master": "主人", "home": "居所", "github": "GitHub", "adopt": "领养", "back": "返回" },  //信息面板上的键名
             "class": "" 
         };
@@ -761,7 +761,11 @@ OwO.util.info("Init", "Animation module is ready.");
             //领养
             var adoptButton = document.createElement("p");
             adoptButton.textContent = keyMap.adopt;
-            adoptButton.onclick = function (e) { window.open("http://owo.zheng0716.com/adopt"); };
+            adoptButton.onclick = function (e) { window.open("http://owo.zheng0716.com/adopt"
+                    + "?name=" + OwO.info.name
+                    + "&home=" + encodeURIComponent(OwO.info.home.link)
+                );
+            };
             menu.addDefaultButtonStyle(adoptButton, "left");
             sideDiv.appendChild(adoptButton);
             sideDiv.appendChild(document.createElement("br"));
