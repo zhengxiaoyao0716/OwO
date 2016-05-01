@@ -142,12 +142,12 @@ var OwO = {
     },
     "util": {
         "config": {
-            "log": true,
-            "debug": true,
+            "log": false,
+            "debug": false,
             "info": true,
             "warn": true,
             "error": true,
-            "monitor": true
+            "monitor": false
         }
     }
 };
@@ -1025,7 +1025,7 @@ OwO.util.info("Init", "Chat module is ready.");
             var adoptButton = document.createElement("p");
             adoptButton.textContent = keyMap.adopt;
             adoptButton.onclick = function (e) { window.open("http://owo.zheng0716.com/adopt"
-                    + "?template=" + OwO.template
+                    + "?template=" + encodeURIComponent(OwO.template)
                     + "?name=" + OwO.info.name
                     + "&home=" + encodeURIComponent(OwO.info.home.link)
                 );
@@ -1280,5 +1280,6 @@ OwO.util.info("Init", "Initialization complete.");
 OwO.init = function () {
     OwO.util.warn("Init field", "Function 'init' has already been used so that it was been destroyed.")
 };
+OwO.util.info("Welcome", "Like this plugin? Get it from github: https://github.com/zhengxiaoyao0716/OwO.");
 return OwO.call();
 };
