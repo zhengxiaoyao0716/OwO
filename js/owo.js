@@ -34,33 +34,34 @@ var OwO = {
     },
     "anim": {
         "config": {
-            "type": 0,  //0: random, 1: sequence
             /**
              * 动画列，有random、sequence两种模式，写法不同.
+             * 区分random与sequence的唯一判别条件: queue[0] === 0
              * ------------------------------------------------------------
              * random: 随机动画，从散列抽取执行.
-             * e.g: 0, [{actionA}, 1, {actionB}, 4, {actionC}, 9, {"wait": 500}, 30]
-             * 解析：action1播放的概率为1/30，action2为1/10，action3为1/6。为了提高效率，你应该尽量把概率小的写在前面
+             * e.g: [0, {actionA}, 1, {actionB}, 4, {actionC}, 9, {"wait": 0.5}, 30]
+             * 解析：actionA播放的概率为1/30，actionB为1/10，actionC为1/6。为了提高效率，你应该尽量把概率小的写在前面
+             * !由于去重复，概率会有一定偏差，尤其在基数较小时
              * ------------------------------------------------------------
              * sequence: 顺序动画，沿队列依次执行.
-             * e.g: [{actionA}, {"wait": 500}, {actionB}, {"wait": 1000}, {actionC}]
+             * e.g: [{actionA}, {"wait": 0.5}, {actionB}, {"wait": 1}, {actionC}]
              * 解析：播放actionA -> 停顿0.5s -> 播放actionB -> 停顿1s -> 播放actionC -> 播放actionA -> 循环...
              * ------------------------------------------------------------
-             * {actionX}是指描述动作集行为的JsonObject.
-             * e.g: {"frames": ["imageUrl", , ,... ], "delay": 0, "wait": 0, "repeat": 0, "offset": [moveX, moveY, moveZ], "onFinish": function () {}}
-             * @param frames 动画帧图的资源路径的数组，数组长度决定帧数，undefined表示不变，""表示清除
+             * {action}是指描述动作集行为的JsonObject.
+             * e.g: {"frames": ["imageUrl", , , ...], "delay": 0, "wait": 0, "repeat": 0, "offset": [moveX, moveY, moveZ], "onFinish": function () {}}
+             * @param frames 动画帧图的资源路径的数组，数组长度决定帧数，undefined表示不变，""表示清除（不显示任何图片）
              * @param delay 动画帧切换的延时，单位为浏览器帧时，近似 1s = 60帧
-             * @param wait 动画播结束后等待时间，单位为毫秒，只会影响到动画列内的动作集
+             * @param wait 动画播放结束后等待时间，单位为秒，只会影响到动画列内的动作集
              * @param repeat 重复次数，无限循环不需要靠这个参数解决，anim只放一个动作集就好了
-             * @param offset 萌物每帧在x、y、z三个方向上的位移，其中z位移相当于缩放(scale += offset[2] / 100)，而不是改变图层(zIndex)
+             * @param offset OwO每帧在x、y、z三个方向上的位移，其中z位移相当于缩放(scale += offset[2] / 100)，而不是改变图层(zIndex)
              * @param onFinish 动画播放结束时回调
-             * @return time 一个动作集完整播放结束所用的时间 time ~= frames.length * (1 + delay) / 60 * repeat + wait / 1000 (s)
+             * @return time 一个动作集完整播放结束所用的时间 time ~= frames.length * (1 + delay) / 60 * repeat + wait (s)
              * ------------------------------------------------------------
              * 我说的应该还算详细吧，看大伙的领悟能力咯。。。
              */
             "queue": [],
-            "play1Focus": true,    //当萌物获得光标焦点时，是否继续播放动画（不包括移动）
-            "move1Focus": true,    //当萌物获得光标焦点时，是否允许萌物移动的动画效果
+            "play1Focus": true,     //当OwO获得光标焦点时，是否继续播放动画（不包括移动）
+            "move1Focus": true,     //当OwO获得光标焦点时，是否允许OwO移动的动画效果
             "resize1Finish": true   //播放结束时是否回到初始状态
         }
     },
@@ -68,14 +69,15 @@ var OwO = {
         "config": {
             "class": "",
             "fontSize": "medium",
+            "fontFamily": "inherit",
             "color": "black",
             "bgColor": "white",
             "shadowColor": "#888",
             "focusColor": "#aaa",
-            "coord": [0, 0.5],      //相对萌物主体0代表萌物的最左(上)坐标处，1代表最右（下）坐标处
+            "coord": [0, 0.5],      //相对OwO主体0代表OwO的最左(上)坐标处，1代表最右（下）坐标处
             "axis": [1, 0.5],       //轴心位置，相对菜单主体，[0.5, 0.5]为中心
-            "strictFollow": true,  //是否严格跟随，即与萌物一起移动
-            "alwaysShow": true,    //是否一直显示
+            "strictFollow": true,   //是否严格跟随，即与OwO一起移动
+            "alwaysShow": true,     //是否一直显示
             "infoPanel": {
                 "title": "OwO Information",
                 "keyMap": { "name": "Name", "gender": "Gender", "birth": "Birth", "master": "Master", "home": "Home", "github": "GitHub", "adopt": "Adopt", "back": "Back" },   //信息面板上的键名
@@ -93,16 +95,49 @@ var OwO = {
     },
     "chat": {
         "config": {
-            "maxWidth": "300px",
-            "defaultWords": ["Best wish to you from the two dimensional world."],   //默认显示的文本数组，文本可以是html
-            "faces": {
-                /**
-                 * 表情包, "faceName": "faceImage".
-                 * e.g: "smile": "smile.png", "trick": "trick.png", "shy": "shy.png"
-                 * 解析：表情是指一帧立绘图，当聊天输出内容时指定faceName，则萌物会切换到相应的图片，即变换表情
-                 */
-            },
-            "showTime": 0   //消息呈现时间，指每次刷新后，从弹出面板到自动隐藏的时间。但消息会一直保留直到下次刷新。0表示每次消息刷新后不自动显示
+            "minHeight": "60px",   //默认布局是横向约束纵向扩展的，你可以通过css来深度自定义
+            "defaultWords": "Best wish to you from the two dimensional world.", //一个有效的html文本或字符串, 作为消息面板默认的innerHtml
+            /**
+             * 消息列，有random、sequence两种模式，写法不同.
+             * 区分random与sequence的唯一判别条件: queue[0] === 0
+             * ------------------------------------------------------------
+             * random: 随机动画，从散列抽取执行.
+             * e.g: [0, {messageA}, 1, {messageB}, 4, {messageC}, 9, {"wait": 3}, 30]
+             * 解析：messageA发布的概率为1/30，messageB为1/10，messageC为1/6。为了提高效率，你应该尽量把概率小的写在前面
+             * !由于去重复，概率会有一定偏差，尤其在基数较小时
+             * ------------------------------------------------------------
+             * sequence: 顺序动画，沿队列依次执行.
+             * e.g: [{messageA}, {"wait": 3}, {messageB}, {"wait": 5}, {messageC}]
+             * 解析：发布messageA -> 隐藏3s -> 发布messageB -> 隐藏5s -> 发布messageC -> 发布messageA -> 循环...
+             * ------------------------------------------------------------
+             * {message}是指描述消息集的JsonObject.
+             * e.g: {"content": ["messageBody", , , ...], "delay": 30, "wait": 0.5, "onFinish": function () {}}
+             * @param content 消息内容的数组，里面是一些列消息体。content为[]、undefined时不弹出消息
+             * @param delay 消息内容切换的延时，单位为浏览器帧时，近似 1s = 60帧
+             * @param wait 消息滚动完成后等待时间，单位为秒，只会影响到消息列中的消息集
+             * @param onFinish 消息结束时回调
+             * @return time 一个消息集完整播放结束所用的时间 time ~= content.length * (1 + delay) / 60 + wait (s)
+             * ------------------------------------------------------------
+             * "messageBody"是指描述消息体的字符串, undefined表示不变，""表示清空（不显示任何消息）.
+             * e.g: "textContent<p>htmlContent</p>::faceResource::soundResource::..."
+             * 解析：messageBody会"::"划分开，成为这样["textContent<p>htmlContent</p>", "faceResource", "soundResource", ...]
+             * @param part0 第一部分是一个有效的html文本或字符串
+             * @param part1 第二部分是表情资源的链接，可以是face集指定的faceId，也可以是一个有效的url，优先检索face集
+             * @param part2 预计作为音效资源的链接（然而目前并没有加入），可以是sound集指定的soundId，也可以是一个有效的url，优先检索sound集
+             * @param other 后面的部分暂时没作用，以后可能会扩展一些功能
+             * 总之，"::"将被作为分隔符使用，注意避免冲突
+             */
+            "queue": [],
+            /**
+             * 表情包, 两种写法，Object或Array都行.
+             * Object.e.g:  {"smile": ["smile.png"], "trick": ["trickA.png", "trickB.png"], "shy": ["shy.png"]}
+             * //faceId分别是"smile", "trick", "shy"
+             * Array.e.g:   [["smile.png"], ["trickA.png", "trickB.png"], ["shy.png"]]
+             * //faceId分别是0, 1, 2（也可以写成"0", "1", "2"）
+             * 解析：表情是指几帧立绘图，当聊天输出内容时指定faceId，则OwO会随机切换到其中的某张，即变换表情
+             * !表情切换后不会还原到初始状态，你需要手动指定下一帧为初始图片(OwO.config.image)
+             */
+            "face": {}  //[]
         }
     },
     "util": {
@@ -122,26 +157,26 @@ var OwO = {
     OwO.locale.chinese = function () {
         OwO.config.title = "我是来自二次元的OwO~";
         OwO.menu.config.infoPanel = {
-            "title": "萌物信息",
-            "keyMap": { "name": "姓名", "gender": "性别", "birth": "生日", "master": "主人", "home": "居所", "github": "GitHub", "adopt": "领养", "back": "返回" },  //信息面板上的键名
+            "title": "OwO信息",
+            "keyMap": { "name": "姓名", "gender": "性别", "birth": "生日", "master": "主人", "home": "居所", "github": "GitHub", "adopt": "抱走", "back": "返回" },  //信息面板上的键名
         };
         OwO.menu.config.defaultButtons = {
             "hideButton": {
                 "showed": true, "text": "隐藏", "bye": "我会想念你的，再见~",
-                "showButton": { "showed": true, "text": "召唤萌物", "hello": "WoW, 萌萌哒OwO又回来咯!!!" }
+                "showButton": { "showed": true, "text": "呼唤OwO", "hello": "WoW, 萌萌哒OwO又回来咯!!!" }
             },
             "topButton": { "showed": true, "text": "顶部" },
             "homeButton": { "showed": true, "text": "回家" }
         };
-        OwO.chat.config.defaultWords = ["OwO为你送上来自二次元的问候~"]
+        OwO.chat.config.defaultWords = "OwO为你送上来自二次元的问候~";
     };
 }());
 
 /**
- * 初始化并召唤萌物.
+ * 初始化并召唤OwO.
  * 请完成所有自定义配置
  * 然后再调用该方法进行初始化
- * 之后你将得到一系列操作萌物的方法
+ * 之后你将得到一系列操作OwO的方法
  * 但请勿再修改配置、
  * 我不保证之后的修改会生效
  */
@@ -275,6 +310,45 @@ OwO.init = function () {
         return window.cancelAnimationFrame(func);
     };
     
+    /* 构造队列的获取集合方法 */
+    OwO.util.reqCollect = function (queue) {
+        var index = -1;
+        //随机抽取
+        function extract() {
+            if (queue[0] !== 0) return false;
+            
+            var dis = 0;
+            var max = queue[queue.length - 1];
+            return function req () {
+                var rand = dis + parseInt(Math.random() * (max - dis));
+                var _index;
+                for (_index = queue.length - 3; _index >= 0; _index-=2) {
+                    if (queue[_index] > rand) continue;
+                    
+                    if (_index == index) {
+                        rand -= dis;
+                        continue;
+                    }
+                    
+                    index = _index;
+                    dis = queue[_index + 2] - queue[_index];
+                    return queue[_index + 1];
+                }
+                return req();
+            };
+        };
+        //顺序执行
+        function enqueue() {
+            if (queue[0] === 0) return false;
+            
+            return function () {
+                if (++index >= queue.length) index = 0;
+                return queue[index];
+            };
+        };
+        return extract() || enqueue();
+    }
+    
     /** 加载图片 */
     OwO.util.loadImage = function (src, callback) {
         return function () {
@@ -299,6 +373,7 @@ OwO.init = function () {
         if (el.onmouseleave === null) el.onmouseleave = func;
         else el.onmouseout = func;
     }
+    
     /** 共享变量 */
     OwO.util.share = {};
 }());
@@ -358,9 +433,12 @@ OwO.util.info("Init", "Base utilities is ready.");
             
             focus = false;
             OwO.anim.play();
+            OwO.chat.scroll();
             OwO.util.share.parent.appendChild(owoDiv);
             showed = true;
         };
+        OwO.anim.init();
+        OwO.chat.init();
         owo.show();
         OwO.util.share.width = owoDiv.clientWidth;
         OwO.util.share.height =  owoDiv.clientHeight
@@ -374,6 +452,7 @@ OwO.util.info("Init", "Base utilities is ready.");
             }
             
             OwO.anim.stop();
+            OwO.chat.stop();
             owoDiv.remove();
             showed = false;
             
@@ -422,8 +501,9 @@ OwO.util.info("Init", "Base utilities is ready.");
             owoDiv.style.transform = undefined;
             
             OwO.menu.follow(coord[0], coord[1]);
+            OwO.anim.replay();
+            //OwO.chat.replay();
         };
-        OwO.menu.init();
         owo.resize();
         
         //配置光标样式
@@ -529,25 +609,27 @@ OwO.util.info("Init", "Base utilities is ready.");
         owo = undefined;
         
         OwO.menu.release();
+        OwO.anim.release();
+        OwO.chat.release();
     });
     
     //监视
     OwO.util.monitor(OwO, "OwO");
     
-    /* 留给anim接口 */
+    /* 留给anim与chat的接口 */
     
     /** 是否获得焦点 */
-    OwO.anim.isFocus = protect(function () {
+    OwO.util.share.isFocus = protect(function () {
         return owo.isFocus();
     })
     
     /** 设置纹理 */
-    OwO.anim.setTexture = protect(function (texture) {
+    OwO.util.share.setTexture = protect(function (texture) {
         return owo.setTexture(texture);
     })
     
     /** 移动位置 */
-    OwO.anim.move = protect(function (offset) {
+    OwO.util.share.move = protect(function (offset) {
         return owo.move(offset);
     })
 }());
@@ -559,95 +641,90 @@ OwO.util.info("Init", "Main body is ready.");
     var config = OwO.anim.config;
     
     var anim;
-    //播放
-    OwO.anim.play = function (param) {
-        if (anim)
-        {
-            OwO.util.warn("IllegalState", "Animation is playing.");
-            return;
-        }
-        if (config.queue == false)
-        {
-            OwO.util.warn("IllegalArgument", "Empty animation queue.");
+    //初始化
+    OwO.anim.init = function (param) {
+        if (anim) {
+            OwO.util.warn("IllegalState", "Animation inited.");
             return;
         }
         anim = {};
         
-        //请求一个动作集
-        var reqAction = (function () {
-            var queue = config.queue;
-            var index = -1;
-            //随机抽取
-            function extract() {
-                if (config.type != 0) return false;
-                
-                return function () {
-                    var randInt = parseInt(Math.random() * queue[queue.length - 1]);
-                    var _index;
-                    for (_index = queue.length - 3; _index >= 0; _index-=2) {
-                        if (queue[_index] < randInt) {
-                            if (_index == index) return reqAction();
-                            return queue[index + 1];
-                        }
-                    }
-                };
-            };
-            //顺序执行
-            function enqueue() {
-                if (config.type != 1) return false;
-                
-                return function () {
-                    if (++index >= queue.length) index = 0;
-                    return queue[index];
-                };
-            };
-            return extract() || enqueue();
-        }());
+        if (config.queue == false) {
+            anim.play = anim.stop = function () { OwO.util.log("InvalidArgument", "Empty animation queue."); };
+            return;
+        }
         
-        var animationHandle;
-        //播放一个动画集
-        function playAction() {
+        //请求一个动作集
+        var reqAction = OwO.util.reqCollect(config.queue);
+        
+        var actionHandle;
+        var frameHandle;
+        var playing;
+        //播放动画
+        anim.play = function () {
+            if (playing) {
+                OwO.util.warn("IllegalState", "Animation has already playing");
+                return;
+            }
+            playing = true;
+            
             var action = reqAction();
             var index = -1;
-            var delay = action.delay || 0;
+            var delay = 0;
             var repeat = action.repeat || 0;
-            function playFram() {
+            function playFrame() {
+                if (!playing) return;
+                
                 if (delay-- > 0) {
-                    animationHandle = OwO.util.requestAnimationFrame(playFram);
+                    frameHandle = OwO.util.requestAnimationFrame(playFrame);
                     return;
                 }
                 delay = action.delay;
                 
-                (OwO.anim.isFocus() && !config.move1Focus) || action.offset && OwO.anim.move(action.offset);
+                (OwO.util.share.isFocus() && !config.move1Focus) || action.offset && OwO.util.share.move(action.offset);
                 if (action.frames && repeat >= 0) {
-                    if (!OwO.anim.isFocus()) {
+                    if (!OwO.util.share.isFocus()) {
                         if (++index >= action.frames.length) {
                             repeat--;
                             index = 0;
                         }
                         
-                        action.frames[index] != undefined && OwO.anim.setTexture(action.frames[index]);
+                        action.frames[index] != undefined && OwO.util.share.setTexture(action.frames[index]);
                     }
                     else if (config.play1Focus) {
                         if (++index >= action.frames.length) index = 0;
                         
-                        action.frames[index] != undefined && OwO.anim.setTexture(action.frames[index]);
+                        action.frames[index] != undefined && OwO.util.share.setTexture(action.frames[index]);
                     }
                     
-                    animationHandle = OwO.util.requestAnimationFrame(playFram);
+                    frameHandle = OwO.util.requestAnimationFrame(playFrame);
                     return;
                 }
                 
+                clearTimeout(actionHandle);
+                actionHandle = undefined;
+                if (playing) {
+                    playing = false;
+                    actionHandle = setTimeout(anim.play(), 1000 * action.wait || 0);
+                }
+                
                 if (config.resize1Finish) {
-                    OwO.anim.setTexture(OwO.config.image);
+                    OwO.util.share.setTexture(OwO.config.image);
                     OwO.resize();
                 }
-                animationHandle = setTimeout(playAction, action.wait || 0);
                 action.onFinish && action.onFinish();
             }
-            animationHandle = OwO.util.requestAnimationFrame(playFram);
+            frameHandle = OwO.util.requestAnimationFrame(playFrame);
         }
-        playAction();
+        
+        //停止播放
+        anim.stop = function () {
+            if (!playing) return;
+            playing = false;
+            OwO.util.cancelAnimationFrame(frameHandle);
+            clearTimeout(actionHandle);
+            frameHandle = actionHandle = undefined;
+        };
     };
     
     //保护性装饰器
@@ -655,7 +732,7 @@ OwO.util.info("Init", "Main body is ready.");
         return function () {
             if (!anim)
             {
-                OwO.util.warn("IllegalState", "Animation not playing.");
+                OwO.util.warn("IllegalState", "Animation has not inited yet.");
                 return;
             }
             
@@ -663,15 +740,177 @@ OwO.util.info("Init", "Main body is ready.");
         };
     }
     
+    /** 播放 */
+    OwO.anim.play = protect(function () {
+        return anim.play();
+    });
+    
     /** 停止 */
     OwO.anim.stop = protect(function () {
         return anim.stop();
     });
     
+    /** 重置 */
+    OwO.anim.replay = protect(function () {
+        anim.stop();
+        return anim.play();
+    });
+    
+    /** 释放 */
+    OwO.anim.release = protect(function () {
+        OwO.anim.stop();
+        anim = undefined;
+    });
+    
     //监视
     //OwO.util.monitor(OwO.anim, "OwO.anim");
 }());
-OwO.util.info("Init", "Animation module is ready.");
+OwO.util.info("Init", "Anim module is ready.");
+
+
+/** OwO.chat 聊天模块 */
+(function () {
+    var config = OwO.chat.config;
+    
+    var chat;
+    /** 初始化聊天部件 */
+    OwO.chat.init = function () {
+        if (chat) {
+            OwO.util.warn("IllegalState", "Chat panel has already exited.");
+            return;
+        }
+        chat = {};
+        
+        var panelDiv = document.createElement("div");
+        OwO.menu.init(panelDiv);
+        panelDiv.style.minHeight = config.minHeight;
+        panelDiv.style.padding = "6px";
+        panelDiv.style.color = OwO.menu.config.color;
+        panelDiv.style.backgroundColor = OwO.menu.config.bgColor;
+        panelDiv.style.boxShadow = "0px 0px 8px " + OwO.menu.config.shadowColor;
+        panelDiv.style.borderRadius = "6px";
+        panelDiv.innerHTML = config.defaultWords;
+        
+        //隐藏
+        chat.hide = function() { panelDiv.style.width = "0px"; }
+        //显示
+        chat.show = function(width) { panelDiv.style.width = width - panelDiv.clientWidth + "px"; }
+        
+        if (config.queue == false) {
+            chat.stop = chat.scroll = function () { OwO.util.log("InvalidArgument", "Empty message queue."); };
+            return;
+        }
+        
+        //请求一个消息集
+        var reqMessage = OwO.util.reqCollect(config.queue);
+        
+        var messageHandle;
+        var contentHandle;
+        var scrolling;
+        //滚动消息
+        chat.scroll = function () {
+            if (scrolling) {
+                OwO.util.warn("IllegalState", "Message is scrolling");
+                return;
+            }
+            scrolling = true;
+            
+            OwO.menu.config.alwaysShow || OwO.menu.hide();
+            var message = reqMessage();
+            var index = -1;
+            var delay = 0;
+            function scrollContent() {
+                if (!scrolling) return;
+                
+                if (delay-- > 0) {
+                    contentHandle = OwO.util.requestAnimationFrame(scrollContent);
+                    return;
+                }
+                delay = message.delay;
+                
+                if (message.content) {
+                    OwO.menu.show();
+                    if (++index < message.content.length) {
+                        if (message.content[index]) {
+                            var parts = message.content[index].split("::");
+                            parts[0] && (panelDiv.innerHTML = parts[0]);
+                            parts[1] && (OwO.util.share.setTexture(
+                                config.face[parts[1]] ?
+                                (function () {
+                                    var faces = config.face[parts[1]];
+                                    var rand = parseInt(Math.random() * faces.length);
+                                    return faces[rand];
+                                }()) : parts[1]
+                            ));
+                        }
+                        contentHandle = OwO.util.requestAnimationFrame(scrollContent);
+                        return;
+                    }
+                }
+                
+                if (scrolling) {
+                    scrolling = false;
+                    messageHandle = setTimeout(chat.scroll, 1000 * message.wait || 0);
+                }
+                message.onFinish && message.onFinish();
+            }
+            if (message.content) panelDiv.innerHTML = "";
+            contentHandle = OwO.util.requestAnimationFrame(scrollContent);
+        }
+        
+        //停止滚动
+        chat.stop = function () {
+            if (!scrolling) return;
+            scrolling = false;    //锁
+            clearTimeout(messageHandle);
+            OwO.util.cancelAnimationFrame(contentHandle);
+            contentHandle = messageHandle = undefined;
+        };
+        
+        return panelDiv;
+    };
+    
+    //保护性装饰器
+    function protect(func) {
+        return function () {
+            if (!chat)
+            {
+                OwO.util.warn("IllegalState", "No chat panel found.");
+                return;
+            }
+            
+            return func.apply(OwO.chat, arguments);
+        };
+    }
+    
+    //隐藏
+    OwO.chat.hide = protect(function () {
+        return chat.hide();
+    });
+    //显示
+    OwO.chat.show = protect(function (width) {
+        return chat.show(width);
+    });
+    
+    //滚动
+    OwO.chat.scroll = protect(function () {
+        return chat.scroll();
+    });
+    //停止
+    OwO.chat.stop = protect(function () {
+        return chat.stop();
+    });
+    
+    /** 释放 */
+    OwO.chat.release = protect(function () {
+        OwO.chat.stop();
+        chat = undefined;
+    });
+    
+    //监视
+    //OwO.util.monitor(OwO.chat, "OwO.chat");
+}());
+OwO.util.info("Init", "Chat module is ready.");
 
 
 /** OwO.menu 菜单模块 */
@@ -680,10 +919,10 @@ OwO.util.info("Init", "Animation module is ready.");
     
     var menu;
     /** 初始化 */
-    OwO.menu.init = function () {
+    OwO.menu.init = function (chatPanel) {
         if (menu)
         {
-            OwO.util.warn("IllegalState", "Menu has already init.");
+            OwO.util.log("InvalidState", "Menu has already init.");
             return;
         }
         menu = {};
@@ -693,8 +932,21 @@ OwO.util.info("Init", "Animation module is ready.");
         menuDiv.style.position = OwO.util.share.position;
         menuDiv.style.zIndex = 1 + OwO.config.zIndex;
         menuDiv.style.fontSize = config.fontSize;
+        menuDiv.style.fontFamily = config.fontFamily;
+        
+        //切换按钮面板
+        menu.changePanel = function(panel) {
+            menuDiv.innerHTML = "";
+            menuDiv.appendChild(panel);
+            if (showed) {
+                //还原位置
+                showed = false;
+                menuDiv.remove();
+                menu.show();
+            }
+        };
         var menuPanel = document.createElement("div");
-        menuDiv.appendChild(menuPanel);
+        menu.changePanel(menuPanel);
         
         //添加默认样式
         menu.addDefaultButtonStyle = function (button, cssFloat) {
@@ -708,6 +960,8 @@ OwO.util.info("Init", "Animation module is ready.");
             button.style.borderRadius = "6px";
             button.style.border = config.bgColor + " 3px solid";
             button.style.cssFloat = cssFloat || "right";
+            button.style.fontSize = config.fontSize;
+            button.style.fontFamily = config.fontFamily;
             
             OwO.util.addMouseEnterListen(button, function (e) {
                 button.style.border = config.focusColor + " 3px solid";
@@ -719,23 +973,11 @@ OwO.util.info("Init", "Animation module is ready.");
             return button;
         }
         
-        //切换按钮面板
-        menu.changePanel = function(panel) {
-            menuDiv.innerHTML = "";
-            menuDiv.appendChild(panel);
-            if (showed) {
-                //还原位置
-                showed = false;
-                menuDiv.remove();
-                menu.show();
-            }
-        };
-        
         //添加按钮
         menu.add = function (button) {
             menuPanel.appendChild(button);
         };
-        menu.add(OwO.chat.getPanel());
+        menu.add(chatPanel);
         menu.add(document.createElement("br"));
         
         //快速添加文字按钮
@@ -751,15 +993,15 @@ OwO.util.info("Init", "Animation module is ready.");
             var keyMap = infoConf.keyMap;
             var info = OwO.info;
             
-            //萌物信息
+            //OwO信息
             var infoDiv = document.createElement("div");
             infoDiv.innerHTML = "<h3>" + infoConf.title + "</h3>"
                 + "<hr />"
-                + "<p>" + keyMap.name + ": " + info.name + "</p>"
-                + "<p>" + keyMap.gender + ": " + info.gender + "</p>"
-                + "<p>" + keyMap.birth + ": " + info.birth + "</p>"
-                + "<p>" + keyMap.master + ": " + info.master + "</p>"
-                + "<p>" + keyMap.home + ": <a href=" + info.home.link + ' target="_blank">' + info.home.name + "</a></p>";
+                + "<li style=\"padding: 6px;\">" + keyMap.name + ": " + info.name + "</li>"
+                + "<li style=\"padding: 6px;\">" + keyMap.gender + ": " + info.gender + "</li>"
+                + "<li style=\"padding: 6px;\">" + keyMap.birth + ": " + info.birth + "</li>"
+                + "<li style=\"padding: 6px;\">" + keyMap.master + ": " + info.master + "</li>"
+                + "<li style=\"padding: 6px;\">" + keyMap.home + ": <a href=" + info.home.link + ' target="_blank">' + info.home.name + "</a></li>";
             infoDiv.style.padding = "6px";
             infoDiv.style.marginRight = "12px";
             infoDiv.style.color = config.color;
@@ -767,6 +1009,7 @@ OwO.util.info("Init", "Animation module is ready.");
             infoDiv.style.boxShadow = "0px 0px 8px " + config.shadowColor;
             infoDiv.style.borderRadius = "6px";
             infoDiv.style.cssFloat = "left";
+            infoDiv.style.textAlign = "left";
             
             var sideDiv = document.createElement("div");
             sideDiv.style.cssFloat = "right";
@@ -812,13 +1055,12 @@ OwO.util.info("Init", "Animation module is ready.");
                 coordY + config.coord[1] * OwO.util.share.height
             ];
             
-            if (config.alwaysShow) OwO.menu.show();
-            if (showed)
-            {
+            if (showed) {
                 menuDiv.remove();
                 showed = false;
                 menu.show();
             }
+            else if (config.alwaysShow) OwO.menu.show();
         };
         
         var showed;
@@ -827,11 +1069,13 @@ OwO.util.info("Init", "Animation module is ready.");
         menu.show = function () {
             if (showed)
             {
-                OwO.util.warn("IllegalState", "Menu has already showed.");
+                OwO.util.log("InvalidState", "Menu has already showed.");
                 return;
             }
             
+            OwO.chat.hide();
             OwO.util.share.parent.appendChild(menuDiv);
+            OwO.chat.show(menuPanel.clientWidth);
             
             var _coord = [coord[0] - config.axis[0] * menuDiv.clientWidth, coord[1] - config.axis[1] * menuDiv.clientHeight];
             if (_coord[0] < 0)
@@ -860,7 +1104,7 @@ OwO.util.info("Init", "Animation module is ready.");
         menu.hide = function () {
             if (!showed)
             {
-                OwO.util.warn("IllegalState", "Menu has already hided.");
+                OwO.util.log("InvalidState", "Menu has already hided.");
                 return;
             }
             
@@ -878,6 +1122,7 @@ OwO.util.info("Init", "Animation module is ready.");
                     menuDiv.innerHTML = "";
                     menuDiv.remove();
                     menuDiv.appendChild(menuPanel);
+                    OwO.chat.hide();
                 }
                 else OwO.util.requestAnimationFrame(hide);
             }());
@@ -897,7 +1142,7 @@ OwO.util.info("Init", "Animation module is ready.");
         
         //默认添加的按钮组
         (function () {
-            //隐藏萌物
+            //隐藏OwO
             if (config.defaultButtons.hideButton.showed) OwO.menu.quickAdd(
                 config.defaultButtons.hideButton.text,
                 function (e) {
@@ -922,6 +1167,7 @@ OwO.util.info("Init", "Animation module is ready.");
                         showButton.style.margin = "6px";
                         showButton.onclick = function (e) {
                             OwO.show();
+                            OwO.resize();
                             showButton.remove();
                             
                             var hiPanel = document.createElement("div");
@@ -1013,25 +1259,6 @@ OwO.util.info("Init", "Animation module is ready.");
 }());
 OwO.util.info("Init", "Menu module is ready.");
 
-
-/** OwO.chat 聊天模块 */
-(function () {
-    var config = OwO.chat.config;
-    
-    OwO.chat.getPanel = function () {
-        var panelDiv = document.createElement("div");
-        panelDiv.style.maxWidth = config.maxWidth;
-        panelDiv.style.padding = "6px";
-        panelDiv.style.color = OwO.menu.config.color;
-        panelDiv.style.backgroundColor = OwO.menu.config.bgColor;
-        panelDiv.style.boxShadow = "0px 0px 8px " + OwO.menu.config.shadowColor;
-        panelDiv.style.borderRadius = "6px";
-        
-        panelDiv.innerHTML = config.defaultWords[0];
-        
-        return panelDiv;
-    };
-}());
 
 /** default items 默认初始项 */
 (function () {

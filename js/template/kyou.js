@@ -28,16 +28,62 @@ OwO.config.image = "./image/Kyou/10.png";
 OwO.config.parent = document.getElementById("owoRoom");
 OwO.config.draggableY = false;
 
+OwO.chat.config.defaultWords = "《CLANNAD》是日本游戏品牌Key继《Kanon》、《AIR》后发行的第三款恋爱冒险游戏，游戏于2004年4月28日发行PC初回限定版，并依此为原作改编或扩充跨媒体制作的作品。";
+
+OwO.chat.config.queue = [
+    0, {"content": [
+        "::./image/Kyou/33.png",
+        "叫.::./image/Kyou/33.png",
+        "叫.我.::./image/Kyou/33.png",
+        "叫.我.冈.::./image/Kyou/33.png",
+        "叫.我.冈.崎.::./image/Kyou/31.png",
+        "叫.我.冈.崎.杏！::./image/Kyou/33b.png"
+    ], "delay": 20, "wait": 3},
+    1, {"content": ["汐是个很乖的孩子~::smile"], "delay": 0, "wait": 3},
+    2, {"content": [
+        "期待杏After吗？::shy",
+        "期待杏After吗？::shy",
+        "然而估计不会有了。。。::./image/Kyou/23.png",
+    ], "delay": 60, "wait": 1.5},
+    3, {"content": [
+        "有人说我表情帝::./image/Kyou/30.png",
+        "有人说我表情帝。::./image/Kyou/30.png",
+        "有人说我表情帝。。::./image/Kyou/30a.png",
+        "有人说我表情帝。。。::./image/Kyou/30a.png",
+        "切，::./image/Kyou/31a.png",
+        "切，::./image/Kyou/31a.png",
+        "真没见识←_←::./image/Kyou/31.png",
+    ], "delay": 30, "wait": 2},
+    4, {"content": [
+        "别打扰我，走开::./image/Kyou/18.png",
+        "(明天怎么跟朋也。。。）::./image/Kyou/19a.png",
+        "有办法了(☆_☆)/~~::./image/Kyou/24a.png",
+        "骑电车撞他~~~::./image/Kyou/21b.png",
+    ], "delay": 90, "wait": 1},
+    5, {"content": [
+        "近战打不过智代::./image/Kyou/10b.png",
+        "群攻，有纪宁。。。::./image/Kyou/26a.png",
+        "魔法的话，琴美音波。。。::./image/Kyou/13a.png",
+        "风子的海星召唤、妹妹的占卜、::./image/Kyou/22.png",
+        "还有剂师早苗阿姨特质毒面包::./image/Kyou/31a.png",
+        "不过远程射击嘛::./image/Kyou/33b.png",
+        "刚刚谁说要炖牡丹？::./image/Kyou/32.png"
+    ], "delay": 90, "wait": 1},
+    6//, {"wait": 6},
+    //30
+];
+OwO.chat.config.face = {
+    "smile": ["./image/Kyou/11.png", "./image/Kyou/11a.png", "./image/Kyou/11b.png"],
+    "shy": ["./image/Kyou/21.png", "./image/Kyou/21a.png", "./image/Kyou/21b.png"],
+}
+
 OwO.menu.config.color = "#f0c";
 OwO.menu.config.shadowColor = "#c0f";
 OwO.menu.config.focusColor = "#c0f";
+//OwO.menu.config.alwaysShow = false;
 OwO.menu.config.defaultButtons.hideButton.bye = "再见咯~";
 OwO.menu.config.defaultButtons.hideButton.showButton.text = "呼唤杏";
 OwO.menu.config.defaultButtons.hideButton.showButton.hello = "是在叫我吗？";
-
-OwO.chat.config.maxWidth = "220px";
-
-OwO.chat.config.defaultWords = ["《CLANNAD》是日本游戏品牌Key继《Kanon》、《AIR》后发行的第三款恋爱冒险游戏，游戏于2004年4月28日发行PC初回限定版，并依此为原作改编或扩充跨媒体制作的作品。"];
 
 
 }());
