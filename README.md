@@ -1,4 +1,6 @@
 # OwO萌物v1.0
+
+[![Join the chat at https://gitter.im/zhengxiaoyao0716/OwO](https://badges.gitter.im/zhengxiaoyao0716/OwO.svg)](https://gitter.im/zhengxiaoyao0716/OwO?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ***
 Change log:
 - 2016/5/1 第一版本到此完成
