@@ -24,7 +24,7 @@ OwO.info = {
     "home": {"name": "逍遥居", "link": "http://xiaoyao.zheng0716.com"}
 };
 
-OwO.config.image = "./image/feihe.png";
+OwO.config.image = "./static/image/feihe.png";
 OwO.config.cursor = "simple";
 OwO.config.parent = document.getElementById("owoRoom");
 OwO.config.coord = [1, 1, 1];
@@ -34,7 +34,7 @@ OwO.anim.config.type = 1;
 var frameArray = [];
 var imgNum;
 for (imgNum = 1; imgNum < 30; imgNum++) {
-    frameArray.push("./image/feihe/" + imgNum + ".png");
+    frameArray.push("./static/image/feihe/" + imgNum + ".png");
 }
 OwO.anim.config.queue = [
     {"frames": frameArray, "delay": 1, "repeat": 8, "offset": [-8, -1.5, -0.3]}
