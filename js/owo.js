@@ -402,6 +402,7 @@ OwO.util.info("Init", "Base utilities is ready.");
         var focus;
         //是否有焦点
         owo.isFocus = function () { return focus; };
+        OwO.util.share.setFocus = function (isFocus) { focus = isFocus; }
         
         //设置纹理
         owo.setTexture = function (texture) {
@@ -1130,12 +1131,14 @@ OwO.util.info("Init", "Chat module is ready.");
         
         //鼠标进入
         OwO.util.addMouseEnterListen(menuDiv, function (e) {
+            OwO.util.share.setFocus(true);
             OwO.menu.show();
         });
         //鼠标点击
         menuDiv.onclick = config.onclick;
         //鼠标离开
         OwO.util.addMouseLeaveListen(menuDiv, function (e) {
+            OwO.util.share.setFocus(false);
             if (!config.alwaysShow) OwO.menu.hide();
             else OwO.util.log("Lose focus", "Menu doesn't hide, config is always show");
         });
