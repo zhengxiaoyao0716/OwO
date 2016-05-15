@@ -29,7 +29,6 @@ OwO.config.parent = document.getElementById("owoRoom");
 OwO.config.draggableY = false;
 
 OwO.chat.config.defaultWords = "《CLANNAD》是日本游戏品牌Key继《Kanon》、《AIR》后发行的第三款恋爱冒险游戏，游戏于2004年4月28日发行PC初回限定版，并依此为原作改编或扩充跨媒体制作的作品。";
-
 OwO.chat.config.queue = [
     0, {"content": [
         "::./static/image/Kyou/33.png",

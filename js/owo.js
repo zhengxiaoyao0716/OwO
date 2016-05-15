@@ -65,34 +65,6 @@ var OwO = {
             "resize1Finish": true   //播放结束时是否回到初始状态
         }
     },
-    "menu": {
-        "config": {
-            "class": "",
-            "fontSize": "medium",
-            "fontFamily": "inherit",
-            "color": "black",
-            "bgColor": "white",
-            "shadowColor": "#888",
-            "focusColor": "#aaa",
-            "coord": [0, 0.5],      //相对OwO主体0代表OwO的最左(上)坐标处，1代表最右（下）坐标处
-            "axis": [1, 0.5],       //轴心位置，相对菜单主体，[0.5, 0.5]为中心
-            "strictFollow": true,   //是否严格跟随，即与OwO一起移动
-            "alwaysShow": true,     //是否一直显示
-            "infoPanel": {
-                "title": "OwO Information",
-                "keyMap": { "name": "Name", "gender": "Gender", "birth": "Birth", "master": "Master", "home": "Home", "github": "GitHub", "adopt": "Adopt", "back": "Back" },   //信息面板上的键名
-            },
-            "defaultButtons": {
-                "hideButton": {
-                    "showed": true, "text": "hide", "bye": "I'll miss you, goodbye~",
-                    "showButton": { "showed": true, "text": "call OwO", "hello": "WoW, OwO comed back!!!" }
-                },
-                "topButton": { "showed": true, "text": "top" },
-                "homeButton": { "showed": true, "text": "home"}
-            },
-            "onclick": undefined    //会传给浏览器默认的onclick事件，鼠标点击菜单区域内（包括按钮、聊天面板等等）触发
-        }
-    },
     "chat": {
         "config": {
             "minHeight": "60px",   //默认布局是横向约束纵向扩展的，你可以通过css来深度自定义
@@ -135,9 +107,36 @@ var OwO = {
              * Array.e.g:   [["smile.png"], ["trickA.png", "trickB.png"], ["shy.png"]]
              * //faceId分别是0, 1, 2（也可以写成"0", "1", "2"）
              * 解析：表情是指几帧立绘图，当聊天输出内容时指定faceId，则OwO会随机切换到其中的某张，即变换表情
-             * !表情切换后不会还原到初始状态，你需要手动指定下一帧为初始图片(OwO.config.image)
              */
             "face": {}  //[]
+        }
+    },
+    "menu": {
+        "config": {
+            "class": "",
+            "fontSize": "medium",
+            "fontFamily": "inherit",
+            "color": "black",
+            "bgColor": "white",
+            "shadowColor": "#888",
+            "focusColor": "#aaa",
+            "coord": [0, 0.5],      //相对OwO主体0代表OwO的最左(上)坐标处，1代表最右（下）坐标处
+            "axis": [1, 0.5],       //轴心位置，相对菜单主体，[0.5, 0.5]为中心
+            "strictFollow": true,   //是否严格跟随，即与OwO一起移动
+            "alwaysShow": true,     //是否一直显示
+            "infoPanel": {
+                "title": "OwO Information",
+                "keyMap": { "name": "Name", "gender": "Gender", "birth": "Birth", "master": "Master", "home": "Home", "github": "GitHub", "adopt": "Adopt", "back": "Back" },   //信息面板上的键名
+            },
+            "defaultButtons": {
+                "hideButton": {
+                    "showed": true, "text": "hide", "bye": "I'll miss you, goodbye~",
+                    "showButton": { "showed": true, "text": "call OwO", "hello": "WoW, OwO comed back!!!" }
+                },
+                "topButton": { "showed": true, "text": "top" },
+                "homeButton": { "showed": true, "text": "home"}
+            },
+            "onclick": undefined    //会传给浏览器默认的onclick事件，鼠标点击菜单区域内（包括按钮、聊天面板等等）触发
         }
     },
     "util": {
