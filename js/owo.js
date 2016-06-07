@@ -3,11 +3,11 @@
  * OwO: moe web plugin - zhengxiaoyao0716
  * http://owo.zheng0716.com
  * ----------------------------------------------------------------
- * Javascript released under the Apache2.0 license
+ * Javascript released under the MIT license
  * https://github.com/zhengxiaoyao0716/OwO/raw/gh-pages/LICENSE
  * ================================================================
  */
-
+(function () {
 /** 默认配置，请酌情修改 */
 var OwO = {
     "template": "",     //模板js文件的url路径，只做标识用，表明继承关系。模板是指配置OwO的js文件，请在模板内先配置好这个参数
@@ -1285,3 +1285,17 @@ OwO.init = function () {
 OwO.util.info("Welcome", "Like this plugin? Get it from github: https://github.com/zhengxiaoyao0716/OwO.");
 return OwO.call();
 };
+
+
+if(typeof define ==='function' && define.amd){
+    define(function($) {
+        return OwO;
+    });
+}
+else if(typeof module !== 'undefined' && module.exports){
+    module.exports = OwO;
+}
+else{
+    window.OwO = OwO;
+}
+})();
