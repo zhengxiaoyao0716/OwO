@@ -20,6 +20,7 @@ var OwO = {
         "home": {"name": "OwO乐园", "link": "http://owo.zheng0716.com"}
     },
     "config": {
+        "baseUrl": "",
         "image": "",            //无动作时显示的图片
         "parent": undefined,    //指定父视图，undefined表示相对整个窗口，而不是页面，所以不随页面滚动（fixed）
         "zIndex": 99,
@@ -34,6 +35,7 @@ var OwO = {
     },
     "anim": {
         "config": {
+            "baseUrl": "",
             /**
              * 动画列，有random、sequence两种模式，写法不同.
              * 区分random与sequence的唯一判别条件: queue[0] === 0
@@ -395,7 +397,7 @@ OwO.util.info("Init", "Base utilities is ready.");
         
         var owoImg = document.createElement("img");
         owoImg.draggable = false;
-        owoImg.src = config.image;
+        owoImg.src = config.baseUrl +config.image;
         owoImg.style.display = "block";     //防止img在结尾补换行
         
         var focus;
@@ -405,7 +407,7 @@ OwO.util.info("Init", "Base utilities is ready.");
         
         //设置纹理
         owo.setTexture = function (texture) {
-            owoImg.src = texture;
+            owoImg.src = OwO.anim.config.baseUrl + texture;
         };
         
         var owoDiv = document.createElement("div");
@@ -507,9 +509,9 @@ OwO.util.info("Init", "Base utilities is ready.");
         owo.resize();
         
         //配置光标样式
-        if (config.cursor == "simple") config.cursor = "http://os.zheng0716.com/static/image/OwO_simple.ico";
-        else if (config.cursor == "moe") config.cursor = "http://os.zheng0716.com/static/image/OwO_moe.ico";
-        owoDiv.style.cursor = 'url("' + config.cursor + '"), url("http://os.zheng0716.com/static/image/OwO_simple.ico"), auto';
+        if (config.cursor == "simple") config.cursor = "./static/image/OwO_simple.ico";
+        else if (config.cursor == "moe") config.cursor = "./static/image/OwO_moe.ico";
+        owoDiv.style.cursor = 'url("' + config.baseUrl + config.cursor + '"), url("https://zhengxiaoyao0716.github.io/OwO/static/image/OwO_simple.ico"), auto';
         owoDiv.title = config.title;
         
         //鼠标进入
