@@ -171,7 +171,7 @@
             };
             OwO.chat.config.defaultWords = "OwO为你送上来自二次元的问候~";
         };
-    } ());
+    })();
 
     /**
      * 初始化并召唤OwO.
@@ -258,7 +258,7 @@
                         obj[key] = decorate(obj, obj[key], "Monitor: " + objName + "." + key + "();");
                     }
                 };
-            } ());
+            })();
 
             /** 请求/取消动画帧 */
             (function () {
@@ -302,7 +302,7 @@
                 //得到兼容各浏览器的API
                 window.requestAnimationFrame = requestAnimationFrame;
                 window.cancelAnimationFrame = cancelAnimationFrame;
-            } ());
+            })();
             OwO.util.requestAnimationFrame = function (func) {
                 return window.requestAnimationFrame(func);
             };
@@ -351,16 +351,14 @@
 
             /** 加载图片 */
             OwO.util.loadImage = function (src, callback) {
-                return function () {
-                    var image = new Image();
-                    image.src = src;
-                    image.onerror = function () {
-                        OwO.util.warn("Load image failed", "src = " + OwO.config.image);
-                        callback(src);
-                    }
-                    if (image.complete) callback();
-                    else image.onload = callback;
+                var image = new Image();
+                image.src = src;
+                image.onerror = function () {
+                    OwO.util.warn("Load image failed", "src = " + OwO.config.image);
+                    callback(src);
                 }
+                if (image.complete) callback(src);
+                else image.onload = function () { callback(src) };
             };
 
             /** 光标进入 */
@@ -376,7 +374,7 @@
 
             /** 共享变量 */
             OwO.util.share = {};
-        } ());
+        })();
         OwO.util.info("Init", "Base utilities is ready.");
 
 
@@ -386,190 +384,192 @@
 
             var owo;
             /** 召唤 */
-            OwO.call = OwO.util.loadImage(config.baseUrl + config.image, function (loadedImage) {
-                if (owo) {
-                    OwO.util.warn("IllegalState", "Already called.");
-                    return;
-                }
-                owo = {};
-
-                var owoImg = document.createElement("img");
-                owoImg.draggable = false;
-                owoImg.src = loadedImage;
-                owoImg.style.display = "block";     //防止img在结尾补换行
-
-                var focus;
-                //是否有焦点
-                owo.isFocus = function () { return focus; };
-                OwO.util.share.setFocus = function (isFocus) { focus = isFocus; }
-
-                //设置纹理
-                owo.setTexture = function (texture) {
-                    owoImg.src = OwO.anim.config.baseUrl + texture;
-                };
-
-                var owoDiv = document.createElement("div");
-                owoDiv.appendChild(owoImg);
-                owoDiv.style.zIndex = config.zIndex;
-
-                if (OwO.config.parent) {
-                    OwO.util.share.parent = OwO.config.parent;
-                    OwO.util.share.position = "absolute";
-                }
-                else {
-                    OwO.util.share.parent = document.documentElement;
-                    OwO.util.share.position = "fixed";
-                }
-                owoDiv.style.position = OwO.util.share.position;
-
-                var showed;
-                //显示
-                owo.show = function () {
-                    if (showed) {
-                        OwO.util.warn("IllegalState", "Already showed.");
+            OwO.call = function () {
+                OwO.util.loadImage(config.baseUrl + config.image, function (loadedImage) {
+                    if (owo) {
+                        OwO.util.warn("IllegalState", "Already called.");
                         return;
                     }
+                    owo = {};
 
-                    focus = false;
-                    OwO.anim.play();
-                    OwO.chat.scroll();
-                    OwO.util.share.parent.appendChild(owoDiv);
-                    showed = true;
-                };
-                OwO.anim.init();
-                OwO.chat.init();
-                owo.show();
-                OwO.util.share.width = owoDiv.clientWidth;
-                OwO.util.share.height = owoDiv.clientHeight
+                    var owoImg = document.createElement("img");
+                    owoImg.draggable = false;
+                    owoImg.src = loadedImage;
+                    owoImg.style.display = "block";     //防止img在结尾补换行
 
-                //隐藏
-                owo.hide = function () {
-                    if (!showed) {
-                        OwO.util.warn("IllegalState", "Already hided.");
-                        return;
+                    var focus;
+                    //是否有焦点
+                    owo.isFocus = function () { return focus; };
+                    OwO.util.share.setFocus = function (isFocus) { focus = isFocus; }
+
+                    //设置纹理
+                    owo.setTexture = function (texture) {
+                        owoImg.src = OwO.anim.config.baseUrl + texture;
+                    };
+
+                    var owoDiv = document.createElement("div");
+                    owoDiv.appendChild(owoImg);
+                    owoDiv.style.zIndex = config.zIndex;
+
+                    if (OwO.config.parent) {
+                        OwO.util.share.parent = OwO.config.parent;
+                        OwO.util.share.position = "absolute";
                     }
-
-                    OwO.anim.stop();
-                    OwO.chat.stop();
-                    owoDiv.remove();
-                    showed = false;
-
-                    OwO.menu.hide();
-                };
-
-
-                var coord = [];
-                //移动
-                owo.move = function (offset) {
-                    coord[2] += (coord[2] * offset[2] / 100);
-                    if (coord[2] < 0) coord[2] = 0;
-                    coord[0] += offset[0] * coord[2];
-                    coord[1] += offset[1] * coord[2];
-                    owoDiv.style.left = coord[0] + "px";
-                    owoDiv.style.top = coord[1] + "px";
-                    owoDiv.style.transform = "scale(" + coord[2] + ", " + coord[2] + ")";
-
-                    OwO.menu.config.strictFollow && OwO.menu.follow(coord[0], coord[1]);
-                }
-
-                //归位
-                owo.resize = function () {
-                    if (!showed) {
-                        OwO.util.warn("IllegalState", "Can not resized when hided.");
-                        return;
+                    else {
+                        OwO.util.share.parent = document.documentElement;
+                        OwO.util.share.position = "fixed";
                     }
+                    owoDiv.style.position = OwO.util.share.position;
 
-                    coord[0] = config.coord[0] * OwO.util.share.parent.clientWidth;
-                    coord[1] = window.scrollY + config.coord[1] * OwO.util.share.parent.clientHeight;
-                    if (OwO.util.share.parent.style.position != "relative"
-                        && OwO.util.share.parent.style.position != "absolute"
-                        && OwO.util.share.parent.style.position != "fixed"
-                        && OwO.util.share.parent.style.position != "inherit"
-                    ) {
-                        var rect = OwO.util.share.parent.getBoundingClientRect();
-                        coord[0] += rect.left;
-                        coord[1] += rect.top;
-                    }
-                    coord[0] -= config.axis[0] * owoDiv.clientWidth;
-                    coord[1] -= config.axis[1] * owoDiv.clientHeight;
-                    owoDiv.style.left = coord[0] + "px";
-                    owoDiv.style.top = coord[1] + "px";
-                    coord[2] = config.coord[2];
-                    owoDiv.style.transform = undefined;
+                    var showed;
+                    //显示
+                    owo.show = function () {
+                        if (showed) {
+                            OwO.util.warn("IllegalState", "Already showed.");
+                            return;
+                        }
 
-                    OwO.menu.follow(coord[0], coord[1]);
-                    OwO.anim.replay();
-                    //OwO.chat.replay();
-                };
-                owo.resize();
+                        focus = false;
+                        OwO.anim.play();
+                        OwO.chat.scroll();
+                        OwO.util.share.parent.appendChild(owoDiv);
+                        showed = true;
+                    };
+                    OwO.anim.init();
+                    OwO.chat.init();
+                    owo.show();
+                    OwO.util.share.width = owoDiv.clientWidth;
+                    OwO.util.share.height = owoDiv.clientHeight
 
-                //配置光标样式
-                if (config.cursor == "simple") config.cursor = "./static/image/OwO_simple.ico";
-                else if (config.cursor == "moe") config.cursor = "./static/image/OwO_moe.ico";
-                owoDiv.style.cursor = 'url("' + config.baseUrl + config.cursor + '"), url("https://zhengxiaoyao0716.github.io/OwO/static/image/OwO_simple.ico"), auto';
-                owoDiv.title = config.title;
+                    //隐藏
+                    owo.hide = function () {
+                        if (!showed) {
+                            OwO.util.warn("IllegalState", "Already hided.");
+                            return;
+                        }
 
-                //鼠标进入
-                OwO.util.addMouseEnterListen(owoDiv, function (e) {
-                    focus = true;
-                    OwO.menu.follow(coord[0], coord[1]);
-                    OwO.menu.show();
-                });
-                var pressed = false;
-                var offset;
-                var percent;
-                //鼠标按下
-                owoDiv.onmousedown = function (e) {
-                    pressed = true;
-                    offset = [e.pageX - coord[0], e.pageY - coord[1]]
-                    if (config.onClick) {
-                        var perX = (e.layerX || e.offsetX) / owoDiv.clientWidth;
-                        var perY = (e.layerY || e.offsetY) / owoDiv.clientHeight;
-                        percent = (config.onTouch && config.onTouch(perX, perY)) ? undefined : [perX, perY];
-                    }
-                };
-                var moved = false;
-                //鼠标移动
-                owoDiv.onmousemove = function (e) {
-                    if (!pressed) return;
-                    moved = true;
+                        OwO.anim.stop();
+                        OwO.chat.stop();
+                        owoDiv.remove();
+                        showed = false;
 
-                    if (config.draggableX) {
-                        coord[0] = e.pageX - offset[0];
+                        OwO.menu.hide();
+                    };
+
+
+                    var coord = [];
+                    //移动
+                    owo.move = function (offset) {
+                        coord[2] += (coord[2] * offset[2] / 100);
+                        if (coord[2] < 0) coord[2] = 0;
+                        coord[0] += offset[0] * coord[2];
+                        coord[1] += offset[1] * coord[2];
                         owoDiv.style.left = coord[0] + "px";
-                    }
-                    if (config.draggableY) {
-                        coord[1] = e.pageY - offset[1];
                         owoDiv.style.top = coord[1] + "px";
+                        owoDiv.style.transform = "scale(" + coord[2] + ", " + coord[2] + ")";
+
+                        OwO.menu.config.strictFollow && OwO.menu.follow(coord[0], coord[1]);
                     }
 
-                    OwO.menu.config.strictFollow && OwO.menu.follow(coord[0], coord[1]);
-                };
-                //鼠标抬起
-                owoDiv.onmouseup = function (e) {
-                    pressed = false;
+                    //归位
+                    owo.resize = function () {
+                        if (!showed) {
+                            OwO.util.warn("IllegalState", "Can not resized when hided.");
+                            return;
+                        }
 
-                    if (moved) {
-                        moved = false;
+                        coord[0] = config.coord[0] * OwO.util.share.parent.clientWidth;
+                        coord[1] = window.scrollY + config.coord[1] * OwO.util.share.parent.clientHeight;
+                        if (OwO.util.share.parent.style.position != "relative"
+                            && OwO.util.share.parent.style.position != "absolute"
+                            && OwO.util.share.parent.style.position != "fixed"
+                            && OwO.util.share.parent.style.position != "inherit"
+                        ) {
+                            var rect = OwO.util.share.parent.getBoundingClientRect();
+                            coord[0] += rect.left;
+                            coord[1] += rect.top;
+                        }
+                        coord[0] -= config.axis[0] * owoDiv.clientWidth;
+                        coord[1] -= config.axis[1] * owoDiv.clientHeight;
+                        owoDiv.style.left = coord[0] + "px";
+                        owoDiv.style.top = coord[1] + "px";
+                        coord[2] = config.coord[2];
+                        owoDiv.style.transform = undefined;
+
                         OwO.menu.follow(coord[0], coord[1]);
-                        return;
-                    }
-                    if (config.onClick) {
-                        var perX = (e.layerX || e.offsetX) / owoDiv.clientWidth;
-                        var perY = (e.layerY || e.offsetY) / owoDiv.clientHeight;
-                        if (percent && percent[0] == perX && percent[1] == perY) config.onClick(perX, perY);
-                        percent = undefined;
-                    }
-                };
-                //鼠标离开
-                OwO.util.addMouseLeaveListen(owoDiv, function (e) {
-                    focus = false;
-                    pressed = false;
+                        OwO.anim.replay();
+                        //OwO.chat.replay();
+                    };
+                    owo.resize();
 
-                    if (!OwO.menu.config.alwaysShow) OwO.menu.hide();
-                    else OwO.util.log("Lose focus", "Menu doesn't hide, config is always show");
+                    //配置光标样式
+                    if (config.cursor == "simple") config.cursor = "./static/image/OwO_simple.ico";
+                    else if (config.cursor == "moe") config.cursor = "./static/image/OwO_moe.ico";
+                    owoDiv.style.cursor = 'url("' + config.baseUrl + config.cursor + '"), url("https://zhengxiaoyao0716.github.io/OwO/static/image/OwO_simple.ico"), auto';
+                    owoDiv.title = config.title;
+
+                    //鼠标进入
+                    OwO.util.addMouseEnterListen(owoDiv, function (e) {
+                        focus = true;
+                        OwO.menu.follow(coord[0], coord[1]);
+                        OwO.menu.show();
+                    });
+                    var pressed = false;
+                    var offset;
+                    var percent;
+                    //鼠标按下
+                    owoDiv.onmousedown = function (e) {
+                        pressed = true;
+                        offset = [e.pageX - coord[0], e.pageY - coord[1]]
+                        if (config.onClick) {
+                            var perX = (e.layerX || e.offsetX) / owoDiv.clientWidth;
+                            var perY = (e.layerY || e.offsetY) / owoDiv.clientHeight;
+                            percent = (config.onTouch && config.onTouch(perX, perY)) ? undefined : [perX, perY];
+                        }
+                    };
+                    var moved = false;
+                    //鼠标移动
+                    owoDiv.onmousemove = function (e) {
+                        if (!pressed) return;
+                        moved = true;
+
+                        if (config.draggableX) {
+                            coord[0] = e.pageX - offset[0];
+                            owoDiv.style.left = coord[0] + "px";
+                        }
+                        if (config.draggableY) {
+                            coord[1] = e.pageY - offset[1];
+                            owoDiv.style.top = coord[1] + "px";
+                        }
+
+                        OwO.menu.config.strictFollow && OwO.menu.follow(coord[0], coord[1]);
+                    };
+                    //鼠标抬起
+                    owoDiv.onmouseup = function (e) {
+                        pressed = false;
+
+                        if (moved) {
+                            moved = false;
+                            OwO.menu.follow(coord[0], coord[1]);
+                            return;
+                        }
+                        if (config.onClick) {
+                            var perX = (e.layerX || e.offsetX) / owoDiv.clientWidth;
+                            var perY = (e.layerY || e.offsetY) / owoDiv.clientHeight;
+                            if (percent && percent[0] == perX && percent[1] == perY) config.onClick(perX, perY);
+                            percent = undefined;
+                        }
+                    };
+                    //鼠标离开
+                    OwO.util.addMouseLeaveListen(owoDiv, function (e) {
+                        focus = false;
+                        pressed = false;
+
+                        if (!OwO.menu.config.alwaysShow) OwO.menu.hide();
+                        else OwO.util.log("Lose focus", "Menu doesn't hide, config is always show");
+                    });
                 });
-            });
+            };
 
             //保护性装饰器
             function protect(func) {
@@ -627,7 +627,7 @@
             OwO.util.share.move = protect(function (offset) {
                 return owo.move(offset);
             })
-        } ());
+        })();
         OwO.util.info("Init", "Main body is ready.");
 
 
@@ -758,7 +758,7 @@
 
             //监视
             //OwO.util.monitor(OwO.anim, "OwO.anim");
-        } ());
+        })();
         OwO.util.info("Init", "Anim module is ready.");
 
 
@@ -902,7 +902,7 @@
 
             //监视
             //OwO.util.monitor(OwO.chat, "OwO.chat");
-        } ());
+        })();
         OwO.util.info("Init", "Chat module is ready.");
 
 
@@ -1089,7 +1089,7 @@
                         menuDiv.style.opacity = alpha / 100;
 
                         if (alpha < 100) tranGrad = OwO.util.requestAnimationFrame(show);
-                    } ());
+                    })();
                 };
 
                 //隐藏
@@ -1116,7 +1116,7 @@
                             OwO.chat.hide();
                         }
                         else OwO.util.requestAnimationFrame(hide);
-                    } ());
+                    })();
                 };
 
                 //鼠标进入
@@ -1190,7 +1190,7 @@
                             window.location.href = OwO.info.home.link;
                         }
                     );
-                } ());
+                })();
             };
 
             //保护性装饰器
@@ -1248,7 +1248,7 @@
 
             //监视
             OwO.util.monitor(OwO.menu, "OwO.menu");
-        } ());
+        })();
         OwO.util.info("Init", "Menu module is ready.");
 
 
@@ -1265,7 +1265,7 @@
                     timeout = undefined;
                 }, 250);
             });
-        } ());
+        })();
         OwO.util.info("Init", "Initialization complete.");
 
 
