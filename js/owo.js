@@ -23,7 +23,7 @@
             "baseUrl": "",
             "image": "",            //无动作时显示的图片
             "parent": undefined,    //指定父视图，undefined表示相对整个窗口，而不是页面，所以不随页面滚动（fixed）
-            "zIndex": 99,
+            "zIndex": 1,
             "coords": [1, 1, 1],     //[(0, 1), (0, 1), (0, +oo)]  coords[2]是z轴上的坐标，实际上相当于缩放，而不是图层。0为最小不可见，1为原大小
             "axis": [1, 1],         //[(0, 1), (0, 1)] 轴心位置。通过坐标coords、轴心axis两个参数就能很精确的定位了
             "cursor": "moe",        //"moe", "simple" or url
@@ -959,9 +959,8 @@
                     OwO.util.addMouseEnterListen(button, function (e) {
                         button.style.border = config.focusColor + " 3px solid";
                     });
-                    OwO.util.addMouseLeaveListen(button, function (e) {
-                        button.style.border = config.bgColor + " 3px solid";
-                    });
+                    button.onmousedown = function (e) {button.style.border = config.bgColor + " 3px solid";};
+                    OwO.util.addMouseLeaveListen(button, button.onmousedown);
 
                     return button;
                 }
@@ -1161,6 +1160,7 @@
                                 showButton.style.margin = "6px";
                                 showButton.style.webkitAnimation = showButton.style.animation = "show_button-shake 0.5s ease-in-out";
                                 if (!document.getElementById("shakeStyle")) {
+                                    // 这里还用js就太麻烦了。。。
                                     var shakeStyle = document.createElement("style");
                                     shakeStyle.id = "shakeStyle";
                                     shakeStyle.innerHTML = "@keyframes show_button-shake {20% {transform: translate(-10px, -3px) rotate(1.5deg);}40% {transform: translate(-10px, -10px) rotate(-1.5deg);}60% {transform: translate(-3px, -10px) rotate(1.5deg);}80% {transform: translate(-10px, -10px) rotate(-1.5deg);}0%, 100% {transform: translate(0, 0) rotate(0);}}";
