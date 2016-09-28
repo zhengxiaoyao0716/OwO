@@ -483,7 +483,7 @@ OwO.util.info("Init", "Base utilities is ready.");
             }
             
             coord[0] = config.coord[0] * OwO.util.share.parent.clientWidth;
-            coord[1] = config.coord[1] * OwO.util.share.parent.clientHeight;
+            coord[1] = window.scrollY + config.coord[1] * OwO.util.share.parent.clientHeight;
             if (OwO.util.share.parent.style.position != "relative"
                 && OwO.util.share.parent.style.position != "absolute"
                 && OwO.util.share.parent.style.position != "fixed"
