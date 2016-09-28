@@ -27,7 +27,7 @@ OwO.info = {
 OwO.config.image = "./static/image/feihe.png";
 OwO.config.cursor = "simple";
 OwO.config.parent = document.getElementById("owoRoom");
-OwO.config.coord = [1, 1, 1];
+OwO.config.coords = [1, 1, 1];
 OwO.config.axis = [1, 1];
 
 OwO.anim.config.type = 1;
@@ -43,7 +43,7 @@ OwO.anim.config.move1Focus = false;
 
 OwO.chat.config.defaultWords = "爱冷剑，怜悲箫，月下狼孤啸；<br />轻点画，慢勾描，云中人逍遥。";
 
-OwO.menu.config.coord = [0.5, 1];
+OwO.menu.config.coords = [0.5, 1];
 OwO.menu.config.axis = [0.5, 0];
 OwO.menu.config.strictFollow = false;
 OwO.menu.config.alwaysShow = false;

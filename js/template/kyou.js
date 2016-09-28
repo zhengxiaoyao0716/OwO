@@ -79,6 +79,7 @@ OwO.chat.config.face = {
 OwO.menu.config.color = "#f0c";
 OwO.menu.config.shadowColor = "#c0f";
 OwO.menu.config.focusColor = "#c0f";
+OwO.menu.config.coords = [0.16, 0.5];
 //OwO.menu.config.alwaysShow = false;
 OwO.menu.config.defaultButtons.hideButton.bye = "再见咯~";
 OwO.menu.config.defaultButtons.hideButton.showButton.text = "呼唤杏";

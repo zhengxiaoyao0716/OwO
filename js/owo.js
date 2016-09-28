@@ -24,8 +24,8 @@
             "image": "",            //无动作时显示的图片
             "parent": undefined,    //指定父视图，undefined表示相对整个窗口，而不是页面，所以不随页面滚动（fixed）
             "zIndex": 99,
-            "coord": [1, 1, 1],     //[(0, 1), (0, 1), (0, +oo)]  coord[2]是z轴上的坐标，实际上相当于缩放，而不是图层。0为最小不可见，1为原大小
-            "axis": [1, 1],         //[(0, 1), (0, 1)] 轴心位置。通过坐标coord、轴心axis两个参数就能很精确的定位了
+            "coords": [1, 1, 1],     //[(0, 1), (0, 1), (0, +oo)]  coords[2]是z轴上的坐标，实际上相当于缩放，而不是图层。0为最小不可见，1为原大小
+            "axis": [1, 1],         //[(0, 1), (0, 1)] 轴心位置。通过坐标coords、轴心axis两个参数就能很精确的定位了
             "cursor": "moe",        //"moe", "simple" or url
             "title": "OwO",
             "draggableX": true,     //是否允许横向拖动
@@ -122,7 +122,7 @@
                 "bgColor": "white",
                 "shadowColor": "#888",
                 "focusColor": "#aaa",
-                "coord": [0, 0.5],      //相对OwO主体0代表OwO的最左(上)坐标处，1代表最右（下）坐标处
+                "coords": [0, 0.5],      //相对OwO主体，0代表OwO的最左(上)坐标处，1代表最右（下）坐标处
                 "axis": [1, 0.5],       //轴心位置，相对菜单主体，[0.5, 0.5]为中心
                 "strictFollow": true,   //是否严格跟随，即与OwO一起移动
                 "alwaysShow": true,     //是否一直显示
@@ -457,18 +457,18 @@
                     };
 
 
-                    var coord = [];
+                    var coords = [];
                     //移动
                     owo.move = function (offset) {
-                        coord[2] += (coord[2] * offset[2] / 100);
-                        if (coord[2] < 0) coord[2] = 0;
-                        coord[0] += offset[0] * coord[2];
-                        coord[1] += offset[1] * coord[2];
-                        owoDiv.style.left = coord[0] + "px";
-                        owoDiv.style.top = coord[1] + "px";
-                        owoDiv.style.transform = "scale(" + coord[2] + ", " + coord[2] + ")";
+                        coords[2] += (coords[2] * offset[2] / 100);
+                        if (coords[2] < 0) coords[2] = 0;
+                        coords[0] += offset[0] * coords[2];
+                        coords[1] += offset[1] * coords[2];
+                        owoDiv.style.left = coords[0] + "px";
+                        owoDiv.style.top = coords[1] + "px";
+                        owoDiv.style.transform = "scale(" + coords[2] + ", " + coords[2] + ")";
 
-                        OwO.menu.config.strictFollow && OwO.menu.follow(coord[0], coord[1]);
+                        OwO.menu.config.strictFollow && OwO.menu.follow(coords[0], coords[1]);
                     }
 
                     //归位
@@ -478,25 +478,26 @@
                             return;
                         }
 
-                        coord[0] = config.coord[0] * OwO.util.share.parent.clientWidth;
-                        coord[1] = window.scrollY + config.coord[1] * OwO.util.share.parent.clientHeight;
+                        coords[0] = config.coords[0] * OwO.util.share.parent.clientWidth;
+                        coords[1] = window.scrollY + config.coords[1] * OwO.util.share.parent.clientHeight;
                         if (OwO.util.share.parent.style.position != "relative"
                             && OwO.util.share.parent.style.position != "absolute"
                             && OwO.util.share.parent.style.position != "fixed"
                             && OwO.util.share.parent.style.position != "inherit"
                         ) {
                             var rect = OwO.util.share.parent.getBoundingClientRect();
-                            coord[0] += rect.left;
-                            coord[1] += rect.top;
+                            coords[0] += rect.left;
+                            coords[1] += rect.top;
                         }
-                        coord[0] -= config.axis[0] * owoDiv.clientWidth;
-                        coord[1] -= config.axis[1] * owoDiv.clientHeight;
-                        owoDiv.style.left = coord[0] + "px";
-                        owoDiv.style.top = coord[1] + "px";
-                        coord[2] = config.coord[2];
-                        owoDiv.style.transform = undefined;
+                        coords[0] -= config.axis[0] * owoDiv.clientWidth;
+                        coords[1] -= config.axis[1] * owoDiv.clientHeight;
+                        owoDiv.style.left = coords[0] + "px";
+                        owoDiv.style.top = coords[1] + "px";
+                        coords[2] = config.coords[2];
+                        owoDiv.style.transform = "scale(" + coords[2] + ")";
+                        owoDiv.style.transformOrigin = 100 * config.axis[0] + "% " + 100 * config.axis[1] + "%";
 
-                        OwO.menu.follow(coord[0], coord[1]);
+                        OwO.menu.follow(coords[0], coords[1]);
                         OwO.anim.replay();
                         //OwO.chat.replay();
                     };
@@ -511,7 +512,7 @@
                     //鼠标进入
                     OwO.util.addMouseEnterListen(owoDiv, function (e) {
                         focus = true;
-                        OwO.menu.follow(coord[0], coord[1]);
+                        OwO.menu.follow(coords[0], coords[1]);
                         OwO.menu.show();
                     });
                     var pressed = false;
@@ -520,7 +521,7 @@
                     //鼠标按下
                     owoDiv.onmousedown = function (e) {
                         pressed = true;
-                        offset = [e.pageX - coord[0], e.pageY - coord[1]]
+                        offset = [e.pageX - coords[0], e.pageY - coords[1]]
                         if (config.onClick) {
                             var perX = (e.layerX || e.offsetX) / owoDiv.clientWidth;
                             var perY = (e.layerY || e.offsetY) / owoDiv.clientHeight;
@@ -534,15 +535,15 @@
                         moved = true;
 
                         if (config.draggableX) {
-                            coord[0] = e.pageX - offset[0];
-                            owoDiv.style.left = coord[0] + "px";
+                            coords[0] = e.pageX - offset[0];
+                            owoDiv.style.left = coords[0] + "px";
                         }
                         if (config.draggableY) {
-                            coord[1] = e.pageY - offset[1];
-                            owoDiv.style.top = coord[1] + "px";
+                            coords[1] = e.pageY - offset[1];
+                            owoDiv.style.top = coords[1] + "px";
                         }
 
-                        OwO.menu.config.strictFollow && OwO.menu.follow(coord[0], coord[1]);
+                        OwO.menu.config.strictFollow && OwO.menu.follow(coords[0], coords[1]);
                     };
                     //鼠标抬起
                     owoDiv.onmouseup = function (e) {
@@ -550,7 +551,7 @@
 
                         if (moved) {
                             moved = false;
-                            OwO.menu.follow(coord[0], coord[1]);
+                            OwO.menu.follow(coords[0], coords[1]);
                             return;
                         }
                         if (config.onClick) {
@@ -1040,12 +1041,12 @@
                     OwO.menu.changePanel(infoPanel);
                 });
 
-                var coord;
+                var coords;
                 //跟随
-                menu.follow = function (coordX, coordY) {
-                    coord = [
-                        coordX + config.coord[0] * OwO.util.share.width,
-                        coordY + config.coord[1] * OwO.util.share.height
+                menu.follow = function (coordsX, coordsY) {
+                    coords = [
+                        coordsX + config.coords[0] * OwO.util.share.width,
+                        coordsY + config.coords[1] * OwO.util.share.height
                     ];
 
                     if (showed) {
@@ -1069,14 +1070,14 @@
                     OwO.util.share.parent.appendChild(menuDiv);
                     OwO.chat.show(menuPanel.clientWidth);
 
-                    var _coord = [coord[0] - config.axis[0] * menuDiv.clientWidth, coord[1] - config.axis[1] * menuDiv.clientHeight];
-                    if (_coord[0] < 0)
+                    var _coords = [coords[0] - config.axis[0] * menuDiv.clientWidth, coords[1] - config.axis[1] * menuDiv.clientHeight];
+                    if (_coords[0] < 0)
                         menuDiv.style.left = "0px";
-                    else if (_coord[0] > document.documentElement.clientWidth - menuDiv.clientWidth)
+                    else if (_coords[0] > document.documentElement.clientWidth - menuDiv.clientWidth)
                         menuDiv.style.left = document.documentElement.clientWidth - menuDiv.clientWidth + "px";
                     else
-                        menuDiv.style.left = _coord[0] + "px";
-                    menuDiv.style.top = _coord[1] + "px";
+                        menuDiv.style.left = _coords[0] + "px";
+                    menuDiv.style.top = _coords[1] + "px";
 
                     showed = true;
 
@@ -1243,8 +1244,8 @@
             });
 
             /** 跟随 */
-            OwO.menu.follow = protect(function (coordX, coordY) {
-                return menu.follow(coordX, coordY);
+            OwO.menu.follow = protect(function (coordsX, coordsY) {
+                return menu.follow(coordsX, coordsY);
             });
 
             /** 释放 */
