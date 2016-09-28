@@ -1158,6 +1158,13 @@
                                 showButton.style.right = "0px";
                                 showButton.style.bottom = "0px";
                                 showButton.style.margin = "6px";
+                                showButton.style.webkitAnimation = showButton.style.animation = "show_button-shake 0.5s ease-in-out";
+                                if (!document.getElementById("shakeStyle")) {
+                                    var shakeStyle = document.createElement("style");
+                                    shakeStyle.id = "shakeStyle";
+                                    shakeStyle.innerHTML = "@keyframes show_button-shake {20% {transform: translate(-10px, -3px) rotate(1.5deg);}40% {transform: translate(-10px, -10px) rotate(-1.5deg);}60% {transform: translate(-3px, -10px) rotate(1.5deg);}80% {transform: translate(-10px, -10px) rotate(-1.5deg);}0%, 100% {transform: translate(0, 0) rotate(0);}}";
+                                    document.documentElement.appendChild(shakeStyle);
+                                }
                                 showButton.onclick = function (e) {
                                     OwO.show();
                                     OwO.resize();
